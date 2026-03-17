@@ -32,3 +32,9 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
+# Dify Backups
+backups/*
+!backups/README.md
+scripts/*.log
+
