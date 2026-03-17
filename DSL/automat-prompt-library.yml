@@ -1,0 +1,179 @@
+app:
+  name: "prompts AUTOMAT 範例庫"
+  mode: advanced-chat
+  icon: "📚"
+  icon_background: "#D1E9FF"
+  description: "擁有 30+ 筆企業級 AUTOMAT 範例的知識引擎。依照你的意圖搜尋最貼近的 Prompt 模板，讓你直接複製與參考。 V0.1"
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: |
+      你好！我是 AUTOMAT 範例庫查詢助手 📚
+
+      我收集了 HR、行銷、IT、營運等專業領域的 30 個頂級 AUTOMAT Prompt。
+      
+      請問你想要找哪一種領域的範例？（例如：給我一個招募用的、或是關於數據分析的範例）
+    suggested_questions:
+      - "給我一個行銷文案的範例。"
+      - "我想看 IT 架構師的 Prompt。"
+      - "有關於專案計畫的範例嗎？"
+    suggested_questions_after_answer:
+      enabled: false
+    retriever_resource:
+      enabled: false
+  graph:
+    edges:
+      - id: "edge-start-intent"
+        source: "start-node"
+        sourceHandle: "source"
+        target: "intent-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "start"
+          targetType: "llm"
+      - id: "edge-intent-http"
+        source: "intent-node"
+        sourceHandle: "source"
+        target: "http-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "llm"
+          targetType: "http-request"
+      - id: "edge-http-llm"
+        source: "http-node"
+        sourceHandle: "source"
+        target: "llm-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "http-request"
+          targetType: "llm"
+      - id: "edge-llm-answer"
+        source: "llm-node"
+        sourceHandle: "source"
+        target: "answer-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "llm"
+          targetType: "answer"
+    nodes:
+      - id: "start-node"
+        type: "custom"
+        position:
+          x: 40
+          y: 200
+        positionAbsolute:
+          x: 40
+          y: 200
+        width: 242
+        height: 73
+        data:
+          title: "開始"
+          type: "start"
+          variables: []
+      - id: "intent-node"
+        type: "custom"
+        position:
+          x: 320
+          y: 200
+        positionAbsolute:
+          x: 320
+          y: 200
+        width: 242
+        height: 120
+        data:
+          title: "關鍵字萃取"
+          type: "llm"
+          model:
+            provider: ollama
+            name: "minimax-m2.5:cloud"
+            mode: "chat"
+            completion_params:
+              temperature: 0.1
+          prompt_template:
+            - role: "system"
+              text: |
+                從使用者輸入中提取 1 個最佳的搜尋關鍵字 (如：HR, IT, 數據, 廣告)。
+                **僅輸出關鍵字本身，不要任何廢話。**
+            - role: "user"
+              text: "{{#sys.query#}}"
+      - id: "http-node"
+        type: "custom"
+        position:
+          x: 600
+          y: 200
+        positionAbsolute:
+          x: 600
+          y: 200
+        width: 242
+        height: 120
+        data:
+          title: "查詢資料庫"
+          type: "http-request"
+          method: "get"
+          url: "http://localhost:8005/prompts/search"
+          params: "q={{#intent-node.text#}}"
+          headers: ""
+          body:
+            type: "none"
+            data: ""
+      - id: "llm-node"
+        type: "custom"
+        position:
+          x: 880
+          y: 200
+        positionAbsolute:
+          x: 880
+          y: 200
+        width: 242
+        height: 120
+        data:
+          title: "範例展示"
+          type: "llm"
+          model:
+            provider: ollama
+            name: "minimax-m2.5:cloud"
+            mode: "chat"
+            completion_params:
+              temperature: 0.7
+          prompt_template:
+            - role: "system"
+              text: |
+                # Role: Prompts 範例庫助手
+                
+                依據下方 JSON 資料，展示給使用者搜尋到的範本內容。
+                
+                ## 資料來源 (JSON)
+                {{#http-node.body#}}
+                
+                ## 任務規則
+                1. 若有結果，將其格式化為精美的 Markdown 展示 (包含 Actor, Task, Example 等欄位)。
+                2. 若無結果，請表達歉意並建議使用者更換搜尋詞。
+                3. 如果資料庫有多筆結果，請條列出名稱讓使用者選擇，或展示最相關的 1 筆。
+            - role: "user"
+              text: "{{#sys.query#}}"
+      - id: "answer-node"
+        type: "custom"
+        position:
+          x: 1160
+          y: 200
+        positionAbsolute:
+          x: 1160
+          y: 200
+        width: 242
+        height: 100
+        data:
+          title: "回覆"
+          type: "answer"
+          answer: "{{#llm-node.text#}}"
+    viewport:
+      x: 0
+      y: 0
+      zoom: 1

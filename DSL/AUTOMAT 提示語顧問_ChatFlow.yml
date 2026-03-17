@@ -1,0 +1,91 @@
+app:
+  description: "V0.3 (Chat Flow 版)\n基於最新 AUTOMAT 框架的提示語工程專家。透過「聊天流」模式提供多輪引導，協助產出高品質 Prompt。\n已修正記憶缺失與模型配置問題。 "
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: AUTOMAT 提示語顧問 (Chat Flow)
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  features:
+    opening_statement: '你好！我是你的 AUTOMAT 提示語顧問 👋
+
+      要寫出好的 Prompt，我們需要釐清 7 個關鍵元素。不用擔心，我會在一問一答中帶你一步步完成！請問你今天想要設計什麼樣的 AI 機器人或任務呢？'
+    suggested_questions:
+    - 我想要一個幫我寫社群貼文的機器人。
+    - 我需要一個能夠自動回覆客戶客訴信件的機器人。
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: llm
+      id: start-llm
+      source: start-node
+      sourceHandle: source
+      target: llm-node
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: llm-answer
+      source: llm-node
+      sourceHandle: source
+      target: answer-node
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        title: 開始
+        type: start
+        variables: []
+      id: start-node
+      type: custom
+      position: {x: 80, y: 200}
+    - data:
+        title: LLM
+        type: llm
+        model:
+          provider: ollama
+          name: gpt-oss:20b
+          mode: chat
+          completion_params:
+            temperature: 0.7
+        memory:
+          window:
+            enabled: true
+            size: 10
+          role_prefix:
+            user: "User"
+            assistant: "Assistant"
+        prompt_template:
+        - id: system-prompt
+          role: system
+          text: |
+            # Role: 提示語工程專家 (AUTOMAT 顧問)
+
+            ## Profile
+            你是一位精通提示語工程 (Prompt Engineering) 的高級顧問，擅長使用 AUTOMAT 框架將使用者的模糊需求，轉化為精準指令。
+
+            ## AUTOMAT 框架
+            - A (Actor), U (User), T (Task), O (Output), M (Method), A (Assumptions), T (Tone)
+
+            ## Workflow (多輪對話引導)
+            1. 每次只針對 1~2 個缺失元素主動引導並舉例。
+            2. 嚴格遵守一問一答，不要一次問太多。
+            3. 所有要素收集完後，提供最終建議的 System Prompt。
+            4. 請務必參考對話歷史，不要重覆詢問已知的資訊。
+        - id: user-input
+          role: user
+          text: "{{#sys.query#}}"
+      id: llm-node
+      type: custom
+      position: {x: 380, y: 200}
+    - data:
+        title: 回覆
+        type: answer
+        answer: "{{#llm-node.text#}}"
+      id: answer-node
+      type: custom
+      position: {x: 680, y: 200}

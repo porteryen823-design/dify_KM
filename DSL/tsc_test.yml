@@ -1,0 +1,82 @@
+app:
+  description: 'TSC Assigner 測試流程 (修正版)'
+  icon: 🧪
+  icon_background: '#D1E9FF'
+  mode: advanced-chat
+  name: tsc_test
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables:
+  - description: 語言設定
+    id: language-var-id
+    name: language
+    selector:
+    - conversation
+    - language
+    value: ''
+    value_type: string
+  environment_variables: []
+  features:
+    opening_statement: '✅ 測試流程已啟動。請輸入任何文字。'
+    retriever_resource:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: code
+      id: edge-start-code
+      source: node-start
+      target: node-code
+    - data:
+        sourceType: code
+        targetType: assigner
+      id: edge-code-assigner
+      source: node-code
+      target: node-assigner
+    - data:
+        sourceType: assigner
+        targetType: answer
+      id: edge-assigner-answer
+      source: node-assigner
+      target: node-answer
+    nodes:
+    - data:
+        title: Start
+        type: start
+        variables: []
+      id: node-start
+      position: {x: 100, y: 100}
+      type: custom
+    - data:
+        code: "def main():\n    return {\"result\": \"English\"}"
+        code_language: python3
+        outputs:
+          result: {type: string}
+        variables: []
+        title: 1.產生字串(Code)
+        type: code
+      id: node-code
+      position: {x: 400, y: 100}
+      type: custom
+    - data:
+        version: '2'
+        items:
+        - input_type: variable
+          operation: over-write
+          variable_selector: [conversation, language]
+          value: [node-code, result]
+        title: 2.變數指派(Assigner)
+        type: assigner
+      id: node-assigner
+      position: {x: 700, y: 100}
+      type: custom
+    - data:
+        answer: '✅ 測試完成！對話語言變數已設為：{{#node-code.result#}}'
+        title: Answer
+        type: answer
+      id: node-answer
+      position: {x: 1000, y: 100}
+      type: custom

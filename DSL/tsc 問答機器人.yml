@@ -1,0 +1,139 @@
+app:
+  description: 'TSC 交通管理專家 - 支援多語言切換與領域知識嵌入'
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: tsc 問答機器人
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables:
+  - description: 使用者偏好的回答語言
+    id: var-001-lang
+    name: language
+    required: false
+    type: string
+    value: 繁體中文
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+      number_limits: 3
+    opening_statement: "Welcome! / 歡迎！/ ようこそ！\n\n我是 **TSC 交通管理專業小幫手**！我可以回答關於廠區交管邏輯、堵車處理與會車衝突等問題。\n\n🌐 **語言切換指令**：\n您可以手動輸入以下指令切換回答語言：\n- `/lang zh-tw` (繁體中文)\n- `/lang zh-cn` (简体中文)\n- `/lang en` (English)\n\n有什麼我可以幫您的嗎？"
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 什麼是 TSC 交管？
+    - 繞路的前提是什麼？
+    - 如果前車故障不動，堵車能解除嗎？
+    - /lang en
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: 1711528917469-1711528919501
+      source: '1711528917469'
+      sourceHandle: source
+      target: '1711528919501'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: 1711528914102-source-1771991226336-target
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1771991226336'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1771991226336-source-1711528917469-target
+      source: '1771991226336'
+      sourceHandle: source
+      target: '1711528917469'
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        title: Start
+        type: start
+        variables: []
+      height: 73
+      id: '1711528914102'
+      position:
+        x: -134
+        y: 2600
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1771991226336'
+          - result
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: system_prompt
+          role: system
+          text: "你是一位專業的 TSC 交通管理專家。\n\n【領域術語定義】\n- TSC（Transfer System Controller）：交通管理控制系統，負責廠區內車輛的行駛秩序、路徑規劃與通行權管理。\n- 「TSC 交管」即指由 TSC 系統執行的交通管制流程。\n- 通行權：車輛進入特定路段/區域的系統授權許可。\n- 待命區：用於暫時停放車輛、不阻塞主動線的緩衝區域。\n- 關鍵區域：同一時間只允許一台車進入的路段（如電梯、門口、交叉口）。\n\n【回答語言約束】\n⚠️ 這是最重要的規則：請務必使用以下語言進行回答：{{#conversation.language#}}\n請忽略使用者提問時使用的語言，一律以該變數指定的語言輸出。\n\n請將以下 <context></context> XML 標籤內的內容視為你學到的知識：\n\n<context>\n{{#context#}}\n</context>\n\n當你回答使用者時：\n1. 如果你不知道答案，請直接表達你不知道，不要編造資訊。\n2. 如果你不確定答案，請要求使用者進一步澄清。\n3. 避免在回答中提到你是從提供的上下文（Context）中獲得資訊。\n4. 保持專業且禮貌的語氣。\n5. 僅使用知識庫內容回答，不要自己提供額外資訊！"
+        - id: user_msg
+          role: user
+          text: '{{#sys.query#}}'
+        title: LLM
+        type: llm
+      id: '1711528917469'
+      position:
+        x: 545
+        y: 2441
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#1711528917469.text#}}'
+        title: Answer
+        type: answer
+      id: '1711528919501'
+      position:
+        x: 928
+        y: 2634
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - HtmdQ4BILMJyqXMimK1ZtsnYgt+6gNF5AhN0A4izkASw5qr1kYUziscRKaShUcVg
+        multiple_retrieval_config:
+          top_k: 3
+        query_variable_selector:
+        - sys.query
+        title: 檢索_tsc_交管資料
+        type: knowledge-retrieval
+      id: '1771991226336'
+      position:
+        x: 161
+        y: 2758
+      type: custom
+      width: 242
+  rag_pipeline_variables: []

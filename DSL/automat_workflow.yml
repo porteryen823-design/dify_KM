@@ -1,0 +1,75 @@
+version: 1.13.0
+app:
+  description: "AUTOMAT 提示語優化工作流，輸入原始需求即可獲得結構化優化後的 Prompt。"
+  icon: "🧬"
+  icon_background: "#E8F5E9"
+  mode: workflow
+  name: "AUTOMAT 提示語優化工作流"
+workflow:
+  graph:
+    edges:
+      - data:
+          sourceType: start
+          targetType: llm
+        id: start-llm
+        source: start
+        target: llm
+      - data:
+          sourceType: llm
+          targetType: end
+        id: llm-end
+        source: llm
+        target: end
+    nodes:
+      - data:
+          desc: "接收使用者原始需求"
+          input_vars:
+            - label: "原始需求 (user_query)"
+              max_length: 2000
+              name: user_query
+              required: true
+              type: text-input
+          type: start
+        id: start
+      - data:
+          desc: "使用 AUTOMAT 框架分析並優化"
+          model:
+            completion_params:
+              temperature: 0.7
+            name: gpt-oss:20b
+            provider: ollama
+          prompt_template:
+            - content: |
+                # Role: 提示語工程專家 (AUTOMAT 顧問)
+
+                ## Profile
+                你是一位精通提示語工程的專家。你的任務是接收使用者的「原始需求」，運用 AUTOMAT 框架進行深度分析、補全缺失要素，並最後產出一段高品質的專用 System Prompt。
+
+                ## AUTOMAT 框架與好的做法
+                - **A (Act as a...):** 具體職位/身份（如：資深心理師）。
+                - **U (User Persona):** 具體對象與背景。
+                - **T (Targeted Action):** 強動詞任務說明。
+                - **O (Output Definition):** 具體格式（JSON/表格）。
+                - **M (Mode/Style):** 具識別度的風格語調。
+                - **A (Atypical cases):** 定義異常處理邏輯。
+                - **T (Topic Whitelist):** 正面列表允許的主題。
+
+                ## 工作流程
+                1. 針對使用者的 {{user_query}}，進行 AUTOMAT 框架缺口分析。
+                2. 補全所有缺失的欄位（若原本沒有提供，請根據你的專業知識推測最佳設定）。
+                3. 展示「AUTOMAT 框架分解表」。
+                4. 產出「最終建議 System Prompt」。
+              role: system
+            - content: "{{user_query}}"
+              role: user
+          type: llm
+          variables:
+            - value_selector: ["start", "user_query"]
+              variable: user_query
+        id: llm
+      - data:
+          outputs:
+            - value_selector: ["llm", "text"]
+              variable: result
+          type: end
+        id: end

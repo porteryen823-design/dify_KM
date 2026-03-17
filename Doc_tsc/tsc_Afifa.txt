@@ -1,0 +1,13 @@
+Question 1:
+Vehicle 1's standby point is A, while Vehicle 2's standby points are B and C. Suppose Vehicle 1 has just finished charging and its next destination is standby point A. In a 2D coordinate system, the charger is located at (2,5), standby point A is at (-4,1), standby point B is at (-2,1), and standby point C is at (3,1). Note that standby points A, B, and C are all aligned on the same horizontal line since they share Y=1.
+Vehicle 2 is currently at standby point B and needs to travel to the charger at (2,5). Meanwhile, Vehicle 1 has just finished charging and is on its way back to standby point A at (-4,1). Along the path ranging from (2,0) to (-4,0), there is a possibility that both vehicles will encounter each other, since both will be using that route, Vehicle 1 to return to its standby point and Vehicle 2 to reach the charger.
+The question is: Should Vehicle 1 be given priority to pass through first and proceed to its standby point at (-4,1)? Or should Vehicle 2 move first to standby point C, then Vehicle 1 proceeds to standby point A, and finally Vehicle 2 continues its journey to the charger?
+
+
+Question 2:
+Vehicle 1 is currently performing a carrier placing process at point (0,0). Vehicle 2 is at point (2,0) and needs to travel to point (-2,0). There is an alternative route available consisting of points (3,-1), (2,-1), (1,-1), (0,-1), and (-1,-1), where point (3,-1) is connected to (3,0) and point (-1,-1) is connected to (-1,0).
+The question is: Should Vehicle 2 wait at its current position for Vehicle 1 to finish its process, since the direct route is shorter? Or should Vehicle 2 take the alternative lower route through (3,0) → (3,-1) → (2,-1) → (1,-1) → (0,-1) → (-1,-1) → (-1,0) → (-2,0) to avoid the conflict entirely?
+
+Question 3:
+Vehicle 1 is currently at point (4,0) and needs to pick up a carrier at point (1,0). However, Vehicle 2 is currently stopped at point (1,0), blocking Vehicle 1's destination. Vehicle 2 has a standby point at (0,-1) and has also been given a new command to pick up a carrier at point (5,0). Vehicle 1's standby point is at (-2,0).
+The question is: What will Vehicle 2 do given that it is blocking Vehicle 1's pick-up point while also having its own task to complete?

@@ -1,0 +1,182 @@
+app:
+  description: 'TSC 交通管理專家 - 完整多語言版 (格式修正 V2)'
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: tsc 問答機器人
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables:
+  - description: 目前對話使用的語言 (English / 繁體中文 / 简体中文)
+    id: conv-lang-id
+    name: language
+    selector:
+    - conversation
+    - language
+    value: '繁體中文'
+    value_type: string
+  environment_variables: []
+  features:
+    opening_statement: '您好！我是 TSC 交通管理專家。您可以輸入 `/lang en` 切換為英文，或直接開始提問。'
+    retriever_resource:
+      enabled: true
+  graph:
+    edges:
+    - data: {sourceType: start, targetType: if-else}
+      id: edge-start-if
+      source: start
+      target: if-lang-check
+    # English Branch
+    - data: {sourceType: if-else, targetType: code}
+      id: edge-en-true
+      source: if-lang-check
+      sourceHandle: 'true'
+      target: code-en
+    - data: {sourceType: code, targetType: assigner}
+      id: edge-en-assign
+      source: code-en
+      target: assign-en
+    - data: {sourceType: assigner, targetType: answer}
+      id: edge-en-ans
+      source: assign-en
+      target: ans-en
+    # Zh-TW Branch
+    - data: {sourceType: if-else, targetType: if-else}
+      id: edge-en-false-to-tw
+      source: if-lang-check
+      sourceHandle: 'false'
+      target: if-tw-check
+    - data: {sourceType: if-else, targetType: code}
+      id: edge-tw-true
+      source: if-tw-check
+      sourceHandle: 'true'
+      target: code-tw
+    - data: {sourceType: code, targetType: assigner}
+      id: edge-tw-assign
+      source: code-tw
+      target: assign-tw
+    - data: {sourceType: assigner, targetType: answer}
+      id: edge-tw-ans
+      source: assign-tw
+      target: ans-tw
+    # Knowledge / Default Branch
+    - data: {sourceType: if-else, targetType: llm}
+      id: edge-default-llm
+      source: if-tw-check
+      sourceHandle: 'false'
+      target: node-llm
+    - data: {sourceType: llm, targetType: answer}
+      id: edge-llm-ans
+      source: node-llm
+      target: node-ans-default
+    nodes:
+    - data:
+        title: Start
+        type: start
+        variables: []
+      id: start
+      position: {x: 50, y: 300}
+      type: custom
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: contains
+            id: cond-en
+            value: /lang en
+            varType: string
+            variable_selector: [sys, query]
+          logical_operator: and
+        title: 是否切換為英文？
+        type: if-else
+      id: if-lang-check
+      position: {x: 350, y: 150}
+      type: custom
+    - data:
+        code: "def main():\n    return {\"result\": \"English\"}"
+        code_language: python3
+        outputs: {result: {type: string}}
+        title: 產生英文常數
+        type: code
+      id: code-en
+      position: {x: 650, y: 50}
+      type: custom
+    - data:
+        version: '2'
+        items:
+        - input_type: variable
+          operation: over-write
+          variable_selector: [conversation, language]
+          value: [code-en, result]
+        title: 設定語言_英文
+        type: assigner
+      id: assign-en
+      position: {x: 900, y: 50}
+      type: custom
+    - data:
+        answer: '🇺🇸 Language switched to English. How can I help you today?'
+        title: 英文切換確認
+        type: answer
+      id: ans-en
+      position: {x: 1150, y: 50}
+      type: custom
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: contains
+            id: cond-tw
+            value: /lang zh-tw
+            varType: string
+            variable_selector: [sys, query]
+          logical_operator: and
+        title: 是否切換為繁中？
+        type: if-else
+      id: if-tw-check
+      position: {x: 350, y: 450}
+      type: custom
+    - data:
+        code: "def main():\n    return {\"result\": \"繁體中文\"}"
+        code_language: python3
+        outputs: {result: {type: string}}
+        title: 產生繁中常數
+        type: code
+      id: code-tw
+      position: {x: 650, y: 400}
+      type: custom
+    - data:
+        version: '2'
+        items:
+        - input_type: variable
+          operation: over-write
+          variable_selector: [conversation, language]
+          value: [code-tw, result]
+        title: 設定語言_繁中
+        type: assigner
+      id: assign-tw
+      position: {x: 900, y: 400}
+      type: custom
+    - data:
+        answer: '🇹🇼 語言已切換為繁體中文。有什麼我可以幫您的嗎？'
+        title: 繁中切換確認
+        type: answer
+      id: ans-tw
+      position: {x: 1150, y: 400}
+      type: custom
+    - data:
+        model: {name: gpt-4o-mini, provider: openai}
+        prompt_template: '您是交通管理專家。目前的對話語言是：{{#conversation.language#}}。請使用該語言回答。'
+        title: LLM 回答
+        type: llm
+      id: node-llm
+      position: {x: 650, y: 600}
+      type: custom
+    - data:
+        answer: '{{#node-llm.text#}}'
+        title: 最終回答
+        type: answer
+      id: node-ans-default
+      position: {x: 900, y: 600}
+      type: custom

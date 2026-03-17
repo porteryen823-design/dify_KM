@@ -1,0 +1,39 @@
+app:
+  description: '最簡測試 - 只有 Start + Answer'
+  icon: 🔬
+  icon_background: '#E0F2FE'
+  mode: advanced-chat
+  name: tsc_minimal
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: 'Minimal test started.'
+    retriever_resource:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: answer
+      id: edge-start-answer
+      source: node-start
+      target: node-answer
+    nodes:
+    - data:
+        title: Start
+        type: start
+        variables: []
+      id: node-start
+      position: {x: 100, y: 100}
+      type: custom
+    - data:
+        answer: 'OK - workflow is working!'
+        title: Answer
+        type: answer
+      id: node-answer
+      position: {x: 400, y: 100}
+      type: custom

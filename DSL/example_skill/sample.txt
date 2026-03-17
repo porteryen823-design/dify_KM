@@ -1,0 +1,5 @@
+Hello world!
+This is a sample text file for the skill agent.
+The skill agent will read this file and summarize it.
+Hello again, world.
+This tool is very powerful and flexible.

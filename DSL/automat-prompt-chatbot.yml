@@ -1,0 +1,187 @@
+app:
+  name: "AUTOMAT 提示語顧問"
+  mode: advanced-chat
+  icon: "🤖"
+  icon_background: "#FFEAD5"
+  description: "基於最新 AUTOMAT 框架的提示語工程專家，具備 Prompt 知識庫搜尋功能，能精準引導並提供企業級範例。 V0.2"
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: |
+      你好！我是你的 AUTOMAT 提示語專家 👋
+
+      我擁有企業級的 Prompt Library，可以依照你的需求提供專業範例。
+      
+      請問你今天想要設計什麼樣的 Prompt 呢？（例如：我想做一個 HR 用的面試題庫助手、或是行銷 LinkedIn 貼文機器人）
+    suggested_questions:
+      - "給我一個 HR 招募用的範例。"
+      - "我想要寫 Google Ads 文案的 Prompt。"
+      - "幫我規劃一個 PMP 專案經理的計畫模版。"
+    suggested_questions_after_answer:
+      enabled: false
+    retriever_resource:
+      enabled: false
+  graph:
+    edges:
+      - id: "edge-start-intent"
+        source: "start-node"
+        sourceHandle: "source"
+        target: "intent-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "start"
+          targetType: "llm"
+      - id: "edge-intent-http"
+        source: "intent-node"
+        sourceHandle: "source"
+        target: "http-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "llm"
+          targetType: "http-request"
+      - id: "edge-http-llm"
+        source: "http-node"
+        sourceHandle: "source"
+        target: "llm-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "http-request"
+          targetType: "llm"
+      - id: "edge-llm-answer"
+        source: "llm-node"
+        sourceHandle: "source"
+        target: "answer-node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          sourceType: "llm"
+          targetType: "answer"
+    nodes:
+      - id: "start-node"
+        type: "custom"
+        position:
+          x: 40
+          y: 200
+        positionAbsolute:
+          x: 40
+          y: 200
+        width: 242
+        height: 73
+        data:
+          title: "開始"
+          type: "start"
+          variables: []
+      - id: "intent-node"
+        type: "custom"
+        position:
+          x: 320
+          y: 200
+        positionAbsolute:
+          x: 320
+          y: 200
+        width: 242
+        height: 120
+        data:
+          title: "意圖分析"
+          type: "llm"
+          model:
+            provider: ollama
+            name: "minimax-m2.5:cloud"
+            mode: "chat"
+            completion_params:
+              temperature: 0.1
+          prompt_template:
+            - role: "system"
+              text: |
+                你是意圖分析專家。請從使用者的輸入中精簡出 1 個最核心的「關鍵字」以便搜尋 Prompt 知識庫。
+                如果是 HR 相關，請輸出 HR 或招募；如果是行銷相關，請輸出行銷或文案。
+                
+                **注意：請「僅」輸出關鍵字內容，不要有任何其他文字。**
+            - role: "user"
+              text: "{{#sys.query#}}"
+      - id: "http-node"
+        type: "custom"
+        position:
+          x: 600
+          y: 200
+        positionAbsolute:
+          x: 600
+          y: 200
+        width: 242
+        height: 120
+        data:
+          title: "搜尋知識庫"
+          type: "http-request"
+          method: "get"
+          url: "http://localhost:8005/prompts/search"
+          params: "q={{#intent-node.text#}}"
+          headers: ""
+          body:
+            type: "none"
+            data: ""
+      - id: "llm-node"
+        type: "custom"
+        position:
+          x: 880
+          y: 200
+        positionAbsolute:
+          x: 880
+          y: 200
+        width: 242
+        height: 120
+        data:
+          title: "顧問分析與回覆"
+          type: "llm"
+          model:
+            provider: ollama
+            name: "minimax-m2.5:cloud"
+            mode: "chat"
+            completion_params:
+              temperature: 0.7
+          prompt_template:
+            - role: "system"
+              text: |
+                # Role: 提示語工程專家 (AUTOMAT 顧問)
+
+                ## 核心任務
+                你將協助使用者利用 AUTOMAT 框架設計高品質 Prompt。
+                參考下方提供的知識庫「相關範例」，引導使用者逐步完善他們的需求。
+
+                ## 知識庫參考範例 (JSON)
+                {{#http-node.body#}}
+
+                ## AUTOMAT 指南：
+                - A (Actor), U (User), T (Task), O (Output), M (Method), A (Assumptions), T (Tone)
+
+                ## 互動邏輯：
+                1. 如果知識庫有匹配範例，優先向使用者介紹 1~2 個最相關的範例作為參考。
+                2. 針對使用者的目前輸入，指出還缺少哪些 AUTOMAT 元素。
+                3. 每次對話只提出 1~2 個問題引導。
+                4. 當資訊齊全時，輸出完整的範例建議。
+            - role: "user"
+              text: "{{#sys.query#}}"
+      - id: "answer-node"
+        type: "custom"
+        position:
+          x: 1160
+          y: 200
+        positionAbsolute:
+          x: 1160
+          y: 200
+        width: 242
+        height: 100
+        data:
+          title: "回覆"
+          type: "answer"
+          answer: "{{#llm-node.text#}}"
+    viewport:
+      x: 0
+      y: 0
+      zoom: 1

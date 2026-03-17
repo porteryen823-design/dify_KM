@@ -1,0 +1,650 @@
+app:
+  description: 自動獲取文章連結內容並總結出標題與內容摘要，若獲取失敗則嘗試使用 DuckDuckGo。
+  icon: 🤖
+  icon_background: '#E0F2FE'
+  mode: workflow
+  name: 文章摘要總結(LLM容錯)
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.7.8@6a3c5af18834ba94befb8085f66c0d5f0dac117feffd35488e90392cac99028d
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: http-request
+      id: start-http
+      source: start
+      sourceHandle: source
+      target: http
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: if-else
+      id: http-cond
+      source: http
+      sourceHandle: source
+      target: condition
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: if-else
+        targetType: llm
+      id: cond-llm
+      source: condition
+      sourceHandle: 'true'
+      target: llm
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-end
+      source: llm
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: llm
+      id: llm-fallback
+      source: llm
+      sourceHandle: fallback
+      target: llm_fallback
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-fallback-end
+      source: llm_fallback
+      sourceHandle: source
+      target: end_fallback
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: if-else
+        targetType: tool
+      id: cond-ddg
+      source: condition
+      sourceHandle: 'false'
+      target: ddg
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: tool
+        targetType: llm
+      id: ddg-llm
+      source: ddg
+      sourceHandle: source
+      target: llm_ddg
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-ddg-end
+      source: llm_ddg
+      sourceHandle: source
+      target: end_ddg
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: llm
+      id: llm-ddg-fallback
+      source: llm_ddg
+      sourceHandle: fallback
+      target: llm_ddg_fallback
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-ddg-fallback-end
+      source: llm_ddg_fallback
+      sourceHandle: source
+      target: end_ddg_fallback
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 輸入文章網址
+        selected: false
+        title: 開始
+        type: start
+        variables:
+        - label: 文章 URL
+          max_length: 1024
+          options: []
+          required: true
+          type: text-input
+          variable: article_url
+      height: 137
+      id: start
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: 獲取網頁內容
+        headers: 'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36
+
+          Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        method: get
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_execution_time: 60
+          read: 20
+        title: 獲取文章內容
+        type: http-request
+        url: '{{#start.article_url#}}'
+        variables: []
+      height: 152
+      id: http
+      position:
+        x: 362
+        y: 282
+      positionAbsolute:
+        x: 362
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: '='
+            id: cond-1
+            value: '200'
+            varType: number
+            variable_selector:
+            - http
+            - status_code
+          logical_operator: and
+        selected: false
+        title: 判斷 HTTP 狀態
+        type: if-else
+      height: 124
+      id: condition
+      position:
+        x: 644
+        y: 282
+      positionAbsolute:
+        x: 644
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - http
+          - body
+        desc: 總結內容 (由 HTTP 提供)
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gemini-2.0-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: system-prompt-1
+          role: system
+          text: 你是一個專業的文章內容總結助理。
+        - id: user-prompt-1
+          role: user
+          text: '請根據下方爬取到的網頁內容，忽略無關的廣告與 HTML 標籤，讀取主要文字內容。
+
+            網頁內容來源： {{#http.body#}}
+
+            請輸出以下格式：
+
+            # 📜 【文章標題】 (提取並總結原文章標題)
+
+            # 💡 【內容摘要】 (以 3-5 個重點項目總結內容，列出文章最核心的觀念與資訊)'
+        selected: false
+        title: LLM 摘要總結
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 116
+      id: llm
+      position:
+        x: 926
+        y: 80
+      positionAbsolute:
+        x: 926
+        y: 80
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - http
+          - body
+        desc: 容錯總結內容 (由 HTTP 提供)
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: minimax-m2.5:cloud
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: system-prompt-fallback
+          role: system
+          text: 你是一個專業的文章內容總結助理。
+        - id: user-prompt-fallback
+          role: user
+          text: '請根據下方爬取到的網頁內容，忽略無關的廣告與 HTML 標籤，讀取主要文字內容。
+
+            網頁內容來源： {{#http.body#}}
+
+            請輸出以下格式：
+
+            # 📜 【文章標題】 (提取並總結原文章標題)
+
+            # 💡 【內容摘要】 (以 3-5 個重點項目總結內容，列出文章最核心的觀念與資訊)'
+        selected: false
+        title: LLM 回退摘要
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 116
+      id: llm_fallback
+      position:
+        x: 1208
+        y: 80
+      positionAbsolute:
+        x: 1208
+        y: 80
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 輸出最終結果
+        outputs:
+        - value_selector:
+          - llm
+          - text
+          variable: result
+        selected: false
+        title: 輸出
+        type: end
+      height: 116
+      id: end
+      position:
+        x: 1208
+        y: -50
+      positionAbsolute:
+        x: 1208
+        y: -50
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 輸出容錯結果
+        outputs:
+        - value_selector:
+          - llm_fallback
+          - text
+          variable: result
+        selected: false
+        title: 輸出 (回退)
+        type: end
+      height: 116
+      id: end_fallback
+      position:
+        x: 1490
+        y: 80
+      positionAbsolute:
+        x: 1490
+        y: 80
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 使用 DuckDuckGo 搜尋文章 URL 的結果
+        is_team_authorization: true
+        provider_id: duckduckgo/duckduckgo
+        provider_name: duckduckgo/duckduckgo
+        provider_type: builtin
+        selected: false
+        title: DuckDuckGo 搜尋
+        tool_configurations: {}
+        tool_description: Search DuckDuckGo using user query
+        tool_label: DuckDuckGo Search
+        tool_name: duckduckgo_search
+        tool_node_version: '2'
+        tool_parameters:
+          query:
+            type: mixed
+            value: '{{#start.article_url#}}'
+        type: tool
+      height: 96
+      id: ddg
+      position:
+        x: 926
+        y: 450
+      positionAbsolute:
+        x: 926
+        y: 450
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - ddg
+          - text
+        desc: 總結內容 (由 DuckDuckGo 搜尋提供)
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gemini-2.0-flash
+          provider: langgenius/gemini/google
+        prompt_template:
+        - id: system-prompt-2
+          role: system
+          text: 你是一個專業的文章內容總結助理。
+        - id: user-prompt-2
+          role: user
+          text: '由於無法直接抓取原網頁，請根據下方 DuckDuckGo 搜尋引擎針對該網址返回的搜尋結果片段，讀取主要文字內容。
+
+            網頁內容來源 (搜尋結果)： {{#ddg.text#}}
+
+            請輸出以下格式：
+
+            # 📜 【文章標題】 (提取並總結原文章標題)
+
+            # 💡 【內容摘要】 (以 3-5 個重點項目總結內容，列出文章最核心的觀念與資訊)'
+        selected: false
+        title: LLM 摘要總結
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 116
+      id: llm_ddg
+      position:
+        x: 1208
+        y: 320
+      positionAbsolute:
+        x: 1208
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - ddg
+          - text
+        desc: 容錯總結內容 (由 DDG 提供)
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: minimax-m2.5:cloud
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: system-prompt-ddg-fallback
+          role: system
+          text: 你是一個專業的文章內容總結助理。
+        - id: user-prompt-ddg-fallback
+          role: user
+          text: '由於無法直接抓取原網頁，請根據下方 DuckDuckGo 搜尋引擎針對該網址返回的搜尋結果片段，讀取主要文字內容。
+
+            網頁內容來源 (搜尋結果)： {{#ddg.text#}}
+
+            請輸出以下格式：
+
+            # 📜 【文章標題】 (提取並總結原文章標題)
+
+            # 💡 【內容摘要】 (以 3-5 個重點項目總結內容，列出文章最核心的觀念與資訊)'
+        selected: false
+        title: LLM 回退摘要
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 116
+      id: llm_ddg_fallback
+      position:
+        x: 1208
+        y: 580
+      positionAbsolute:
+        x: 1208
+        y: 580
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 輸出最終結果
+        outputs:
+        - value_selector:
+          - llm_ddg
+          - text
+          variable: result
+        selected: false
+        title: 輸出
+        type: end
+      height: 116
+      id: end_ddg
+      position:
+        x: 1490
+        y: 320
+      positionAbsolute:
+        x: 1490
+        y: 320
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 輸出容錯結果
+        outputs:
+        - value_selector:
+          - llm_ddg_fallback
+          - text
+          variable: result
+        selected: false
+        title: 輸出 (回退)
+        type: end
+      height: 116
+      id: end_ddg_fallback
+      position:
+        x: 1490
+        y: 580
+      positionAbsolute:
+        x: 1490
+        y: 580
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        author: admin
+        desc: ''
+        height: 237
+        selected: false
+        showAuthor: false
+        text: '{"root":{"children":[{"children":[{"children":[{"detail":0,"format":1,"mode":"normal","style":"font-size:
+          12px;","text":"Gemini 模型的限制","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":"：您剛才將模型改為 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"font-size:
+          12px;","text":"gemini-2.0-flash","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":"。Gemini 模型的 API 嚴格要求對話歷史中必須至少要有一個 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"font-size:
+          12px;","text":"User","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":" (使用者) 訊息！然而，我們之前的寫法是把所有內容都塞在 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"font-size:
+          12px;","text":"System","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":" 提示字詞當中，這導致 Gemini API 連呼叫都沒建立（您截圖的 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"font-size:
+          12px;","text":"PluginInvokeError: ... contents are required.","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":"），也就是在發送請求前，Dify 驗證參數就直接把節點判定成崩潰了。","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"textFormat":1,"textStyle":"font-size:
+          12px;","value":1},{"children":[{"detail":0,"format":1,"mode":"normal","style":"font-size:
+          12px;","text":"容錯分支 (Fallback) 無法觸發的原因","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":"：在 Dify 的工作流程中，","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"font-size:
+          12px;","text":"Fallback","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":" 分支通常只在「模型超時」(Timeout) 或「模型執行時報錯」時才會觸發。像上面那種","type":"text","version":1},{"detail":0,"format":1,"mode":"normal","style":"font-size:
+          12px;","text":"因為呼叫參數格式錯誤","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"font-size:
+          12px;","text":"（PluginInvokeError）而造成的結構性中斷，會被系統視為「致命錯誤」而直接中止流程，不會過渡到容錯節點。","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"textFormat":1,"textStyle":"font-size:
+          12px;","value":2}],"direction":null,"format":"","indent":0,"type":"list","version":1,"textFormat":1,"textStyle":"font-size:
+          12px;","listType":"number","start":1,"tag":"ol"}],"direction":null,"format":"","indent":0,"type":"root","version":1,"textFormat":1,"textStyle":"font-size:
+          12px;"}}'
+        theme: blue
+        title: ''
+        type: ''
+        width: 602
+      height: 237
+      id: '1773196768140'
+      position:
+        x: 691.7550720524667
+        y: -292.65416427204525
+      positionAbsolute:
+        x: 691.7550720524667
+        y: -292.65416427204525
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-note
+      width: 602
+    - data:
+        author: admin
+        desc: ''
+        height: 88
+        selected: false
+        showAuthor: true
+        text: '{"root":{"children":[{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"https://www.qbitai.com/2024/09/188032.html","type":"text","version":1}],"direction":null,"format":"","indent":0,"type":"paragraph","version":1,"textFormat":0,"textStyle":""},{"children":[],"direction":null,"format":"","indent":0,"type":"paragraph","version":1,"textFormat":0,"textStyle":""}],"direction":null,"format":"","indent":0,"type":"root","version":1}}'
+        theme: blue
+        title: ''
+        type: ''
+        width: 384
+      height: 88
+      id: '1773196852265'
+      position:
+        x: -9.105172122323438
+        y: 108.04649657727009
+      positionAbsolute:
+        x: -9.105172122323438
+        y: 108.04649657727009
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-note
+      width: 384
+    viewport:
+      x: 97.87878245719276
+      y: 263.9337877217978
+      zoom: 0.4999999999999994
+  rag_pipeline_variables: []

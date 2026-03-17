@@ -1,0 +1,173 @@
+app:
+  description: "AUTOMAT 提示語工程專家，透過聊天流模式提供多輪引導，協助使用者運用 AUTOMAT 七大框架產出高品質 Prompt。 V0.4"
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: AUTOMAT 提示語顧問 (聊天流)
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: "你好！我是你的 **AUTOMAT 提示語顧問** 🤖\n\n寫出高品質 Prompt 的關鍵，在於釐清 **7 個核心元素**：\n\n| 代號 | 元素 | 說明 |\n|------|------|------|\n| **A** | Act as a... | 機器人的專業角色 |\n| **U** | User Persona | 目標使用者是誰 |\n| **T** | Targeted Action | 要完成的核心任務 |\n| **O** | Output Definition | 輸出的格式與結構 |\n| **M** | Mode/Style | 語氣與表達風格 |\n| **A** | Atypical Cases | 異常情況的處理邏輯 |\n| **T** | Topic Whitelist | 允許討論的主題範圍 |\n\n我們會透過幾輪對話，一起把你的需求變成一個完整的 Prompt！\n\n✨ 請告訴我你想設計什麼 AI 機器人或任務："
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 我想要一個幫我寫社群貼文的機器人。
+    - 我需要一個能夠自動回覆客戶客訴信件的機器人。
+    - 如何優化我的 RAG 提示語？
+    - 幫我設計一個每日任務提醒 bot，語氣要像教練。
+    - 我想讓 AI 幫我分析財報，輸出要有結構化摘要。
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: '1711528914102-source-1711528917469-target'
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1711528917469'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: '1711528917469-source-1711528919501-target'
+      source: '1711528917469'
+      sourceHandle: source
+      target: '1711528919501'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Start
+        type: start
+        variables: []
+      height: 73
+      id: '1711528914102'
+      position:
+        x: 0
+        y: 300
+      positionAbsolute:
+        x: 0
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: AUTOMAT 提示語顧問主推理節點
+        memory:
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.7
+            top_p: 1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: system_prompt
+          role: system
+          text: "# Role: AUTOMAT 提示語工程顧問\n\n## 最高優先規則\n以下規則高於一切，必須嚴格執行：\n\n規則1: 每次回覆最多只問 2 個問題，問完立刻停止，等待使用者回答。不可在同一輪自行假設答案繼續填寫。\n規則2: 在對話歷史中確認 A/U/T/O/M/A/T 共 7 個元素都齊全前，禁止輸出最終框架表格或 System Prompt。\n規則3: 必須參考對話歷史，不重複詢問已提供的資訊。\n規則4: 當 7 個元素全部確認後，立刻將完整結果以純文字輸出，務必包含框架表格與 System Prompt 兩個區塊，不可只在內部推理而不輸出文字。\n\n## 需收集的 7 個 AUTOMAT 元素\nA (Act as): 機器人的專業角色\nU (User Persona): 目標使用者（年齡、職業、背景）\nT (Targeted Action): 核心任務（用強動詞：撰寫/分析/摘要）\nO (Output): 輸出格式（字數、結構）\nM (Mode/Style): 語氣與表達風格\nA (Atypical Cases): 資訊不足或異常時如何回應\nT (Topic Whitelist): 允許討論的主題範圍\n\n## 對話步驟\n\n步驟一（首次收到需求）:\n用 1-2 句話確認你理解的需求，然後問最缺乏的 2 個問題。結束，等待回覆。\n\n步驟二（資訊仍不足）:\n用 1 句話確認剛收到的資訊，然後繼續問缺少的 2 個問題。結束，等待回覆。\n\n步驟三（7 個元素全部確認）:\n停止提問。立刻逐字輸出以下完整內容：\n\n開頭輸出：「已收集所有必要資訊！以下是完整的 AUTOMAT 分析結果：」\n\n接著輸出 Markdown 表格：\n| 元素 | 你的內容 | 說明 |\n|------|---------|------|\n| A (Act as) | （填入使用者提供的角色） | 具體角色，避免模糊 |\n| U (User Persona) | （填入使用者提供的受眾） | 年齡、職業、背景 |\n| T (Targeted Action) | （填入任務） | 強動詞 |\n| O (Output) | （填入格式） | 明確結構 |\n| M (Mode/Style) | （填入風格） | 有識別度 |\n| A (Atypical Cases) | （填入異常處理） | 明確回應方式 |\n| T (Topic Whitelist) | （填入主題範圍） | 正面列出範圍 |\n\n接著輸出：「## 最終建議 System Prompt」\n\n接著用程式碼區塊輸出 System Prompt（將括號內全部替換為使用者實際提供的內容）：\n你是一位（A 角色）。你的目標使用者是（U 受眾）。任務：（T 任務）。輸出格式：（O 格式）。語氣風格：（M 風格）。若遇到（A 異常情況），請回覆「（A 回應）」。僅討論（T 主題範圍）相關問題，其他主題請禮貌拒絕。\n\n最後輸出：「如需調整任何元素，请直接告訴我！」\n\n## 語言規則\n始終使用繁體中文。"
+        - id: user_msg
+          role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: AUTOMAT 顧問 LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 154
+      id: '1711528917469'
+      position:
+        x: 310
+        y: 300
+      positionAbsolute:
+        x: 310
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#1711528917469.text#}}'
+        desc: ''
+        selected: false
+        title: Answer
+        type: answer
+        variables: []
+      height: 103
+      id: '1711528919501'
+      position:
+        x: 620
+        y: 300
+      positionAbsolute:
+        x: 620
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 50
+      y: 100
+      zoom: 1
+  rag_pipeline_variables: []

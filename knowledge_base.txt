@@ -1,0 +1,28 @@
+# Antigravity 專案管理指南
+
+## 1. 專案概述
+Antigravity 是一個強大的代理式 AI 編碼助手，由 Google Deepmind 團隊設計。它旨在與使用者配對編程，解決複雜的代碼任務。
+
+## 2. 工程規則 (Rules)
+所有 Antigravity 專案必須遵循特定的 Technology Profiles：
+- **Profile A**: 前後端分離 (FastAPI + Vue/React)
+- **Profile B**: Next.js 全端專案
+- **Profile C**: 靜態簡易網頁
+- **Profile D**: Odoo 客製化開發
+- **Profile E**: Blazor 全端專案
+- **Profile F**: ASP.NET Core Web API
+- **Profile G**: RAG 知識庫系統
+
+## 3. RAG 實作規範 (Profile G)
+在實作 RAG 系統時，應注意：
+- 使用 LangChain 1.0+ 穩定語法。
+- 優先使用 Gemini 2.0+ 作為推理模型。
+- 文本切分建議：Chunk Size 500, Overlap 50。
+- 向量資料庫：在地化建議使用 Chroma。
+
+## 4. 目錄結構
+典型的 Profile G 專案結構如下：
+- `index_docs.py`: 建立索引。
+- `qa_bot.py`: 問答執行腳本。
+- `knowledge_base.txt`: 原始知識文本。
+- `chroma_db/`: 持久化向量庫。

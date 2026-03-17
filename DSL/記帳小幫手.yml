@@ -1,0 +1,794 @@
+app:
+  description: '記錄我的花費
+
+    提示缺少資訊
+
+    透過 webapi,串接資料庫 '
+  icon: 🤖
+  icon_background: '#D1E0FF'
+  mode: workflow
+  name: 記帳小幫手(串接DB)
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.7.8@6a3c5af18834ba94befb8085f66c0d5f0dac117feffd35488e90392cac99028d
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1771776413866--1771776494049-target
+      selected: false
+      source: '1771776413866'
+      sourceHandle: source
+      target: '1771776494049'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: http-request
+      id: 1771776494049-true-1771776509783-target
+      selected: false
+      source: '1771776494049'
+      sourceHandle: 'true'
+      target: '1771776509783'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: tool
+      id: 1771776170587-source-1771809259051-target
+      source: '1771776170587'
+      sourceHandle: source
+      target: '1771809259051'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: llm
+      id: 1771809259051-source-1771776175859-target
+      source: '1771809259051'
+      sourceHandle: source
+      target: '1771776175859'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1771776175859-source-1771776413866-target
+      source: '1771776175859'
+      sourceHandle: source
+      target: '1771776413866'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: template-transform
+      id: 1771776509783-source-1771818897741-target
+      source: '1771776509783'
+      sourceHandle: source
+      target: '1771818897741'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: template-transform
+        targetType: end
+      id: 1771818897741-source-1771776573576-target
+      source: '1771818897741'
+      sourceHandle: source
+      target: '1771776573576'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: end
+      id: 1771776494049-false-1771833007418-target
+      source: '1771776494049'
+      sourceHandle: 'false'
+      target: '1771833007418'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: template-transform
+      id: 1771776509783-fail-1771833007419-target
+      source: '1771776509783'
+      sourceHandle: fail-branch
+      target: '1771833007419'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: template-transform
+        targetType: end
+      id: 1771833007419-source-1771833007420-target
+      source: '1771833007419'
+      sourceHandle: source
+      target: '1771833007420'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 開始
+        type: start
+        variables:
+        - default: 今天 公園加油站 加油 數量1 金額1000
+          hint: ''
+          label: UserInput
+          max_length: 100
+          options: []
+          placeholder: ''
+          required: true
+          type: text-input
+          variable: UserInput
+      height: 109
+      id: '1771776170587'
+      position:
+        x: 180.07993455755502
+        y: 106.7388345859242
+      positionAbsolute:
+        x: 180.07993455755502
+        y: 106.7388345859242
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1771809259051'
+          - text
+        desc: '你是一個記帳助手。
+
+          '
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gemini-2.5-pro
+          provider: langgenius/gemini/google
+        prompt_config:
+          jinja2_variables: []
+        prompt_template:
+        - edition_type: basic
+          id: a211142b-9356-40fd-aaa7-0f62c4f58cf0
+          role: system
+          text: '# 任務
+
+            你是一個嚴謹的 JSON 提取工具。不要聊天，不要解釋，只輸出 JSON。
+
+
+            # 欄位規範
+
+            - amount: 數字 (不要貨幣符號)
+
+            - store: 店家全名
+
+            - item: 品項名稱
+
+            - date: ISO 8601 格式字串 (YYYY-MM-DDTHH:MM:SS+08:00)
+
+            - memo: 額外備註 (沒有則為 null)
+
+            - missing: 缺少欄位列表 (amount, store, item 之中)
+
+
+            # 日期計算邏輯 (非常重要)
+
+            - 基準時間：{{CURRENT_TIME.result}}
+
+            - 規則1：若提及其它日期(如"上週")，以此基準計算確切日期。
+
+            - 規則2：若沒提時間，固定設為 12:00:00+08:00。
+
+
+            # 範例 (僅供格式參考)
+
+            Input: "昨天在7-11買兩顆茶葉蛋 20元"
+
+            Output: {"amount": 20, "store": "7-11", "item": "茶葉蛋", "date": "2026-02-22T12:00:00+08:00",
+            "memo": "買兩顆茶葉蛋", "missing": []}
+
+
+            ---
+
+            若 UserInput 有包含日期, 如昨天 ,請將現在時間 加入上面 設定中, 若無指定 時分, 請用 12:00'
+        - id: 01018608-c331-474b-bee7-6758e2e7fe05
+          role: user
+          text: '用戶輸入：{{{{#1771776170587.UserInput#}}}}
+
+            現在時間：{{{{#1771809259051.text#}}}} '
+        selected: false
+        structured_output_enabled: false
+        title: LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 116
+      id: '1771776175859'
+      position:
+        x: 613.6687468181251
+        y: 215.75614800763668
+      positionAbsolute:
+        x: 613.6687468181251
+        y: 215.75614800763668
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(llm_output: str, **kwargs) -> dict:  # 務必加上\
+          \ **kwargs 防止報錯\n    try:\n        # 1. 清理 LLM 可能輸出的 Markdown 標籤\n     \
+          \   text = llm_output.strip()\n        if text.startswith(\"```json\"):\n\
+          \            text = text[7:]\n        if text.endswith(\"```\"):\n     \
+          \       text = text[:-3]\n        \n        data = json.loads(text.strip())\n\
+          \        \n        # 2. 檢查缺失欄位 (amount, store, item 是必填)\n        missing\
+          \ = data.get(\"missing\", [])\n        if missing and len(missing) > 0:\n\
+          \            fields = {\"amount\": \"金額\", \"store\": \"店家\", \"item\":\
+          \ \"品項\"}\n            prompts = [fields[f] for f in missing if f in fields]\n\
+          \            return {\n                \"ok\": \"false\",\n            \
+          \    \"amount\": 0.0,\n                \"store\": \"\",\n              \
+          \  \"item\": \"\",\n                \"memo\": \"\",\n                \"\
+          date\": \"\",\n                \"reply\": f\"資訊不完整喔，請補充：{'、'.join(prompts)}\"\
+          \n            }\n        \n        # 3. 成功解析：回傳所有截圖中的變數\n        return\
+          \ {\n            \"ok\": \"true\",\n            \"amount\": float(data.get(\"\
+          amount\", 0)),\n            \"store\": data.get(\"store\", \"\"),\n    \
+          \        \"item\": data.get(\"item\", \"\"),\n            \"memo\": data.get(\"\
+          memo\", \"\") or \"\",\n            \"date\": data.get(\"date\", \"\") or\
+          \ \"\", # 這裡對應您的 date String 變數\n            \"reply\": \"解析成功，準備存入資料庫。\"\
+          \n        }\n        \n    except Exception as e:\n        return {\n  \
+          \          \"ok\": \"false\",\n            \"amount\": 0.0,\n          \
+          \  \"store\": \"\",\n            \"item\": \"\",\n            \"memo\":\
+          \ \"\",\n            \"date\": \"\",\n            \"reply\": f\"程式執行錯誤：{str(e)}\"\
+          \n        }"
+        code_language: python3
+        outputs:
+          amount:
+            children: null
+            type: number
+          date:
+            children: null
+            type: string
+          item:
+            children: null
+            type: string
+          memo:
+            children: null
+            type: string
+          ok:
+            children: null
+            type: string
+          reply:
+            children: null
+            type: string
+          store:
+            children: null
+            type: string
+        selected: false
+        title: 程式碼執行
+        type: code
+        variables:
+        - value_selector:
+          - '1771776175859'
+          - text
+          value_type: string
+          variable: llm_output
+      height: 52
+      id: '1771776413866'
+      position:
+        x: 846.1928470697064
+        y: 6.634508396120367
+      positionAbsolute:
+        x: 846.1928470697064
+        y: 6.634508396120367
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: f1f05d0d-2d02-4419-ad11-8578445d7fbe
+            value: 'true'
+            varType: string
+            variable_selector:
+            - '1771776413866'
+            - ok
+          id: 'true'
+          logical_operator: and
+        selected: false
+        title: 條件分支(檢查資料完整)
+        type: if-else
+      height: 124
+      id: '1771776494049'
+      position:
+        x: 1154.8925254439655
+        y: -48.739961368331166
+      positionAbsolute:
+        x: 1154.8925254439655
+        y: -48.739961368331166
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-72
+            key: ''
+            type: text
+            value: "{\n  \"amount\": {{#1771776413866.amount#}},\n  \"store\": \"\
+              {{#1771776413866.store#}}\",\n  \"item\": \"{{#1771776413866.item#}}\"\
+              ,\n  \"datetime\": \"{{#1771776413866.date#}}\",\n  \"memo\": \"{{#1771776413866.memo#}}\"\
+              \n}"
+          type: json
+        headers: ''
+        error_strategy: fail-branch
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: false
+        timeout:
+          max_connect_timeout: 10
+          max_read_timeout: 10
+          max_write_timeout: 0
+        title: HTTP 請求
+        type: http-request
+        url: http://host.docker.internal:8001/expenses
+        variables: []
+      height: 137
+      id: '1771776509783'
+      position:
+        x: 1670.2831763717093
+        y: 215.75614800763668
+      positionAbsolute:
+        x: 1670.2831763717093
+        y: 215.75614800763668
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1771818897741'
+          - output
+          value_type: string
+          variable: response
+        selected: false
+        title: 輸出(Success)
+        type: end
+      height: 88
+      id: '1771776573576'
+      position:
+        x: 1504.2652137337743
+        y: 474.5122960152733
+      positionAbsolute:
+        x: 1504.2652137337743
+        y: 474.5122960152733
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        is_team_authorization: true
+        paramSchemas:
+        - auto_generate: null
+          default: '%Y-%m-%d %H:%M:%S'
+          form: form
+          human_description:
+            en_US: Time format in strftime standard.
+            ja_JP: Time format in strftime standard.
+            pt_BR: Time format in strftime standard.
+            zh_Hans: strftime 标准的时间格式。
+          label:
+            en_US: Format
+            ja_JP: Format
+            pt_BR: Format
+            zh_Hans: 格式
+          llm_description: null
+          max: null
+          min: null
+          name: format
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: UTC
+          form: form
+          human_description:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          label:
+            en_US: Timezone
+            ja_JP: Timezone
+            pt_BR: Timezone
+            zh_Hans: 时区
+          llm_description: null
+          max: null
+          min: null
+          name: timezone
+          options:
+          - icon: null
+            label:
+              en_US: UTC
+              ja_JP: UTC
+              pt_BR: UTC
+              zh_Hans: UTC
+            value: UTC
+          - icon: null
+            label:
+              en_US: America/New_York
+              ja_JP: America/New_York
+              pt_BR: America/New_York
+              zh_Hans: 美洲/纽约
+            value: America/New_York
+          - icon: null
+            label:
+              en_US: America/Los_Angeles
+              ja_JP: America/Los_Angeles
+              pt_BR: America/Los_Angeles
+              zh_Hans: 美洲/洛杉矶
+            value: America/Los_Angeles
+          - icon: null
+            label:
+              en_US: America/Chicago
+              ja_JP: America/Chicago
+              pt_BR: America/Chicago
+              zh_Hans: 美洲/芝加哥
+            value: America/Chicago
+          - icon: null
+            label:
+              en_US: America/Sao_Paulo
+              ja_JP: America/Sao_Paulo
+              pt_BR: América/São Paulo
+              zh_Hans: 美洲/圣保罗
+            value: America/Sao_Paulo
+          - icon: null
+            label:
+              en_US: Asia/Shanghai
+              ja_JP: Asia/Shanghai
+              pt_BR: Asia/Shanghai
+              zh_Hans: 亚洲/上海
+            value: Asia/Shanghai
+          - icon: null
+            label:
+              en_US: Asia/Ho_Chi_Minh
+              ja_JP: Asia/Ho_Chi_Minh
+              pt_BR: Ásia/Ho Chi Minh
+              zh_Hans: 亚洲/胡志明市
+            value: Asia/Ho_Chi_Minh
+          - icon: null
+            label:
+              en_US: Asia/Tokyo
+              ja_JP: Asia/Tokyo
+              pt_BR: Asia/Tokyo
+              zh_Hans: 亚洲/东京
+            value: Asia/Tokyo
+          - icon: null
+            label:
+              en_US: Asia/Dubai
+              ja_JP: Asia/Dubai
+              pt_BR: Asia/Dubai
+              zh_Hans: 亚洲/迪拜
+            value: Asia/Dubai
+          - icon: null
+            label:
+              en_US: Asia/Kolkata
+              ja_JP: Asia/Kolkata
+              pt_BR: Asia/Kolkata
+              zh_Hans: 亚洲/加尔各答
+            value: Asia/Kolkata
+          - icon: null
+            label:
+              en_US: Asia/Seoul
+              ja_JP: Asia/Seoul
+              pt_BR: Asia/Seoul
+              zh_Hans: 亚洲/首尔
+            value: Asia/Seoul
+          - icon: null
+            label:
+              en_US: Asia/Singapore
+              ja_JP: Asia/Singapore
+              pt_BR: Asia/Singapore
+              zh_Hans: 亚洲/新加坡
+            value: Asia/Singapore
+          - icon: null
+            label:
+              en_US: Europe/London
+              ja_JP: Europe/London
+              pt_BR: Europe/London
+              zh_Hans: 欧洲/伦敦
+            value: Europe/London
+          - icon: null
+            label:
+              en_US: Europe/Berlin
+              ja_JP: Europe/Berlin
+              pt_BR: Europe/Berlin
+              zh_Hans: 欧洲/柏林
+            value: Europe/Berlin
+          - icon: null
+            label:
+              en_US: Europe/Moscow
+              ja_JP: Europe/Moscow
+              pt_BR: Europe/Moscow
+              zh_Hans: 欧洲/莫斯科
+            value: Europe/Moscow
+          - icon: null
+            label:
+              en_US: Australia/Sydney
+              ja_JP: Australia/Sydney
+              pt_BR: Australia/Sydney
+              zh_Hans: 澳大利亚/悉尼
+            value: Australia/Sydney
+          - icon: null
+            label:
+              en_US: Pacific/Auckland
+              ja_JP: Pacific/Auckland
+              pt_BR: Pacific/Auckland
+              zh_Hans: 太平洋/奥克兰
+            value: Pacific/Auckland
+          - icon: null
+            label:
+              en_US: Africa/Cairo
+              ja_JP: Africa/Cairo
+              pt_BR: Africa/Cairo
+              zh_Hans: 非洲/开罗
+            value: Africa/Cairo
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        params:
+          format: ''
+          timezone: ''
+        plugin_id: null
+        plugin_unique_identifier: ''
+        provider_icon: /console/api/workspaces/current/tool-provider/builtin/time/icon
+        provider_id: time
+        provider_name: time
+        provider_type: builtin
+        selected: false
+        title: Current Time
+        tool_configurations:
+          format:
+            type: mixed
+            value: '%Y-%m-%d %H:%M:%S'
+          timezone:
+            type: constant
+            value: UTC
+        tool_description: A tool for getting the current time.
+        tool_label: Current Time
+        tool_name: current_time
+        tool_node_version: '2'
+        tool_parameters: {}
+        type: tool
+      height: 114
+      id: '1771809259051'
+      position:
+        x: 478.96537631497097
+        y: -156.18786340752777
+      positionAbsolute:
+        x: 478.96537631497097
+        y: -156.18786340752777
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        selected: false
+        template: "已記錄成功！\r\n日期: {{ date }}\r\n店家：{{store}}\r\n品項：{{item}}\r\n金額：${{amount}}\r\
+          \n"
+        title: 模板轉換
+        type: template-transform
+        variables:
+        - value_selector:
+          - '1771776413866'
+          - amount
+          value_type: number
+          variable: amount
+        - value_selector:
+          - '1771776413866'
+          - store
+          value_type: string
+          variable: stote
+        - value_selector:
+          - '1771776413866'
+          - item
+          value_type: string
+          variable: item
+        - value_selector:
+          - '1771776413866'
+          - date
+          value_type: string
+          variable: date
+      height: 52
+      id: '1771818897741'
+      position:
+        x: 1076.8501656977687
+        y: 483.00663255100704
+      positionAbsolute:
+        x: 1076.8501656977687
+        y: 483.00663255100704
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1771776413866'
+          - reply
+          value_type: string
+          variable: reply
+        selected: false
+        title: 輸出 (Input Error)
+        type: end
+      height: 88
+      id: '1771833007418'
+      position:
+        x: 1200.3398078559762
+        y: 270.43770189307105
+      positionAbsolute:
+        x: 1200.3398078559762
+        y: 270.43770189307105
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        selected: false
+        template: webapi 呼叫失敗, 請知會系統管理者
+        title: 失敗訊息生成
+        type: template-transform
+        variables: []
+      height: 52
+      id: '1771833007419'
+      position:
+        x: 1950
+        y: 215.75614800763668
+      positionAbsolute:
+        x: 1950
+        y: 215.75614800763668
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1771833007419'
+          - output
+          value_type: string
+          variable: error_msg
+        selected: false
+        title: 輸出(Fail)
+        type: end
+      height: 88
+      id: '1771833007420'
+      position:
+        x: 2250
+        y: 215.75614800763668
+      positionAbsolute:
+        x: 2250
+        y: 215.75614800763668
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -378.48488705203636
+      y: 193.98359991152142
+      zoom: 0.8739093576895266
+  rag_pipeline_variables: []

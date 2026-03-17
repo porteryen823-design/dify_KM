@@ -1,0 +1,251 @@
+app:
+  description: '自動獲取文章連結內容並總結出標題與內容摘要
+
+    1.簡單讀取網頁並顯示
+
+    2.增加當地一個節點失敗 再用第二個節點讀取'
+  icon: 🤖
+  icon_background: '#E0F2FE'
+  mode: workflow
+  name: 文章摘要總結(經濟板)
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: http-request
+      id: start-http
+      source: start
+      sourceHandle: source
+      target: http
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: llm
+      id: http-llm
+      source: http
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: end
+      id: llm-end
+      source: llm
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 輸入文章網址
+        selected: false
+        title: 開始
+        type: start
+        variables:
+        - label: 文章 URL
+          max_length: 1024
+          options: []
+          required: true
+          type: text-input
+          variable: article_url
+      height: 137
+      id: start
+      position:
+        x: 100
+        y: 100
+      positionAbsolute:
+        x: 100
+        y: 100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: 獲取網頁內容
+        headers: 'User-Agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+          (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36
+
+          Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        method: get
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_execution_time: 60
+          read: 20
+        title: 獲取文章內容
+        type: http-request
+        url: '{{#start.article_url#}}'
+        variables: []
+      height: 152
+      id: http
+      position:
+        x: 434
+        y: -76
+      positionAbsolute:
+        x: 434
+        y: -76
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - http
+          - body
+        desc: 總結內容
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: minimax-m2.5:cloud
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 588ed923-664d-4432-b67a-95456d2c4d4c
+          role: system
+          text: '你是一個專業的文章內容總結助理。
+
+            請根據下方爬取到的網頁內容，忽略無關的廣告與 HTML 標籤，讀取主要文字內容。
+
+
+            網頁內容來源：
+
+            {{#http.body#}}
+
+
+            請輸出以下格式：
+
+
+            # 📜 【文章標題】
+
+            (提取並總結原文章標題)
+
+
+            # 💡 【內容摘要】
+
+            (以 3-5 個重點項目總結內容，列出文章最核心的觀念與資訊)
+
+            '
+        selected: false
+        title: LLM 摘要總結
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 116
+      id: llm
+      position:
+        x: 756
+        y: 100
+      positionAbsolute:
+        x: 756
+        y: 100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: 輸出最終結果
+        outputs:
+        - value_selector:
+          - llm
+          - text
+          variable: result
+        selected: false
+        title: 輸出
+        type: end
+      height: 116
+      id: end
+      position:
+        x: 1059
+        y: 94
+      positionAbsolute:
+        x: 1059
+        y: 94
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -168.5
+      y: 233
+      zoom: 1
+  rag_pipeline_variables: []

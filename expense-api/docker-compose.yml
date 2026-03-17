@@ -1,0 +1,13 @@
+services:
+  expense-api:
+    build: .
+    container_name: expense-api
+    restart: always
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONIOENCODING=utf-8
+
+volumes: {}

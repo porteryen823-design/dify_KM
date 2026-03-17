@@ -1,0 +1,240 @@
+app:
+  description: 'TSC 交通管理專家問答機器人（知識庫檢索 + 術語定義嵌入）'
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: tsc 問答機器人
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: "歡迎使用 TSC 交管問答機器人！\n\n我可以回答關於廠區交管邏輯、堵車處理、會車衝突等問題。\n\n📌 範例問題：\n- 什麼是 TSC 交管？\n- 繞路的前提是什麼？\n- 如果前車故障不動，堵車能解除嗎？\n- 兩台車要同時進電梯怎麼辦？"
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 什麼是 TSC 交管？
+    - 繞路的前提是什麼？
+    - 如果前車故障不動，堵車能解除嗎？
+    - 兩台車要同時進電梯怎麼辦？
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    # Start → Knowledge Retrieval
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: 1711528914102-source-1771991226336-target
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1771991226336'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    # Knowledge Retrieval → LLM
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1771991226336-source-1711528917469-target
+      source: '1771991226336'
+      sourceHandle: source
+      target: '1711528917469'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    # LLM → Answer
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 1711528917469-source-1711528919501-target
+      source: '1711528917469'
+      sourceHandle: source
+      target: '1711528919501'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    # Node 1: Start
+    - data:
+        desc: ''
+        selected: false
+        title: Start
+        type: start
+        variables: []
+      height: 73
+      id: '1711528914102'
+      position:
+        x: 0
+        y: 300
+      positionAbsolute:
+        x: 0
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    # Node 2: Knowledge Retrieval
+    - data:
+        dataset_ids:
+        - HtmdQ4BILMJyqXMimK1ZtsnYgt+6gNF5AhN0A4izkASw5qr1kYUziscRKaShUcVg
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 3
+          weights:
+            keyword_setting:
+              keyword_weight: 0.3
+            vector_setting:
+              embedding_model_name: qwen3-embedding-4b-q4_k_m:latest
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.7
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: false
+        title: 檢索_tsc_交管資料
+        type: knowledge-retrieval
+      height: 90
+      id: '1771991226336'
+      position:
+        x: 310
+        y: 300
+      positionAbsolute:
+        x: 310
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    # Node 3: LLM
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1771991226336'
+          - result
+        desc: Invoking large language models to answer questions or process natural language
+        memory:
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.1
+            top_p: 1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: system_prompt
+          role: system
+          text: "你是一位專業的 TSC 交通管理專家。\n\n【領域術語定義】\n- TSC（Transfer System Controller）：交通管理控制系統，負責廠區內車輛的行駛秩序、路徑規劃與通行權管理。\n- 「TSC 交管」即指由 TSC 系統執行的交通管制流程。\n- 通行權：車輛進入特定路段/區域的系統授權許可。\n- 待命區：用於暫時停放車輛、不阻塞主動線的緩衝區域。\n- 關鍵區域：同一時間只允許一台車進入的路段（如電梯、門口、交叉口）。\n\n請將以下 <context></context> XML 標籤內的內容視為你學到的知識：\n\n<context>\n{{#context#}}\n</context>\n\n當你回答使用者時：\n1. 如果你不知道答案，請直接表達你不知道，不要編造資訊。\n2. 如果你不確定答案，請要求使用者進一步澄清。\n3. 避免在回答中提到你是從提供的上下文中獲得資訊。\n4. 請根據使用者提問的語言進行回答。\n5. 保持專業且禮貌的語氣。\n6. 僅使用知識庫內容回答，不要自己提供額外資訊！"
+        - id: user_msg
+          role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 154
+      id: '1711528917469'
+      position:
+        x: 620
+        y: 300
+      positionAbsolute:
+        x: 620
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    # Node 4: Answer
+    - data:
+        answer: '{{#1711528917469.text#}}'
+        desc: ''
+        selected: false
+        title: Answer
+        type: answer
+        variables: []
+      height: 103
+      id: '1711528919501'
+      position:
+        x: 930
+        y: 300
+      positionAbsolute:
+        x: 930
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 50
+      y: 100
+      zoom: 1
+  rag_pipeline_variables: []
