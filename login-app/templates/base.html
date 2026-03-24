@@ -7,9 +7,70 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
-        body { background-color: #f4f6f9; }
         .navbar { margin-bottom: 2rem; }
+        
+        /* 避免 Bootstrap 暗色模式時表格與卡片有奇怪的繼承底色 */
+        [data-bs-theme="dark"] body { background-color: #212529; }
+        [data-bs-theme="light"] body { background-color: #f4f6f9; }
+
+        /* 全站暗色模式額外修正：
+           Bootstrap 5 的 .text-dark / .text-body 在暗色模式下已自動切換，
+           但若其他頁面仍有 hardcode style="color:#000" 或 text-dark，
+           以下規則提供全站覆蓋保護。 */
+        [data-bs-theme="dark"] .text-dark { color: #dee2e6 !important; }
+        [data-bs-theme="dark"] .card { background-color: #2b3035; border-color: #373d44; }
+        [data-bs-theme="dark"] .card-title { color: #f8f9fa; }
+        [data-bs-theme="dark"] .card-text { color: #adb5bd; }
+        [data-bs-theme="dark"] .dropdown-menu { background-color: #2b3035; border-color: #444; }
+        [data-bs-theme="dark"] .dropdown-item { color: #dee2e6; }
+        [data-bs-theme="dark"] .dropdown-item:hover { background-color: #373d44; color: #fff; }
+
+        /* Theme toggle segment control */
+        .theme-toggle {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 4px;
+            display: inline-flex;
+            gap: 2px;
+            align-items: center;
+        }
+        .theme-toggle .btn {
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-toggle .btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .theme-toggle .btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
     </style>
+    <!-- Prevent FOIT for theme -->
+    <script>
+        const storedTheme = localStorage.getItem('theme');
+        const defaultTheme = 'dark'; // 內定為暗色
+        const getPreferredTheme = () => {
+            if (storedTheme) return storedTheme;
+            return defaultTheme; 
+        };
+        const applyTheme = (theme) => {
+            if (theme === 'auto') {
+                document.documentElement.setAttribute('data-bs-theme', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            }
+        };
+        applyTheme(getPreferredTheme());
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
@@ -31,20 +92,34 @@
                             <li><a class="dropdown-item" href="{{ portal_prefix }}/admin">總覽</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/users">使用者管理</a></li>
+                            <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/user_apps">使用者 App 權限</a></li>
                             <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/apps">App 管理</a></li>
                         </ul>
                     </li>
                     {% endif %}
                 </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <span class="nav-link text-light me-3"><i class="bi bi-person-circle"></i> {{ session.username }}</span>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-outline-light btn-sm mt-1" href="{{ portal_prefix }}/logout">登出</a>
-                    </li>
-                </ul>
+                {% else %}
+                <ul class="navbar-nav me-auto"></ul>
                 {% endif %}
+                
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item me-3 my-2 my-lg-0">
+                        <!-- Theme Switcher -->
+                        <div class="theme-toggle" id="themeSwitcher">
+                            <span class="text-light ms-2 me-1 align-self-center fw-semibold small" style="letter-spacing: 1px;">主題</span>
+                            <button type="button" class="btn" data-theme="auto" title="系統預設"><i class="bi bi-display"></i></button>
+                            <button type="button" class="btn" data-theme="light" title="亮色模式"><i class="bi bi-sun"></i></button>
+                            <span class="text-light mx-1 align-self-center" style="opacity:0.3;">|</span>
+                            <button type="button" class="btn active" data-theme="dark" title="暗色模式"><i class="bi bi-moon"></i></button>
+                        </div>
+                    </li>
+                    {% if session.userid %}
+                    <li class="nav-item d-flex align-items-center">
+                        <span class="nav-link text-light me-3"><i class="bi bi-person-circle"></i> {{ session.username }}</span>
+                        <a class="btn btn-outline-light btn-sm" href="{{ portal_prefix }}/logout">登出</a>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </nav>
@@ -63,5 +138,39 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = getPreferredTheme();
+            const buttons = document.querySelectorAll('#themeSwitcher [data-theme]');
+            
+            const updateActiveButton = (theme) => {
+                buttons.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-theme') === theme) {
+                        btn.classList.add('active');
+                    }
+                });
+            };
+            
+            updateActiveButton(currentTheme);
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.getAttribute('data-theme');
+                    localStorage.setItem('theme', theme);
+                    applyTheme(theme);
+                    updateActiveButton(theme);
+                });
+            });
+
+            // Listen for system theme changes if set to auto
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const storedTheme = localStorage.getItem('theme') || defaultTheme;
+                if (storedTheme === 'auto') {
+                    applyTheme('auto');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

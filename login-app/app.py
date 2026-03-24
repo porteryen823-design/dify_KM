@@ -78,6 +78,15 @@ def init_users_db():
             created_at  TEXT DEFAULT ''
         )
     ''')
+    # User-App Access table
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS user_app_access (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            userid   TEXT NOT NULL,
+            app_id   INTEGER NOT NULL,
+            UNIQUE(userid, app_id)
+        )
+    ''')
     conn.commit()
 
     # --- 自動升級舊版資料庫欄位 (Migration) ---
@@ -93,21 +102,33 @@ def init_users_db():
 
     # Migration: Users
     cur.execute('SELECT COUNT(*) FROM users')
-    if cur.fetchone()[0] == 0 and os.path.exists(USERS_FILE):
-        try:
-            with open(USERS_FILE, 'r', encoding='utf-8') as f:
-                old_users = json.load(f)
-            for u in old_users:
-                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                cur.execute(
-                    'INSERT OR IGNORE INTO users (userid, username, pwd, remark, is_admin, is_active, created_at) VALUES (?,?,?,?,?,?,?)',
-                    (u.get('userid'), u.get('username'), u.get('pwd'), u.get('remark',''),
-                     1 if u.get('is_admin') else 0, 1, now)
-                )
-            conn.commit()
-            app.logger.info('Migrated users.json -> users.db')
-        except Exception as exc:
-            app.logger.warning(f'User migration skipped: {exc}')
+    if cur.fetchone()[0] == 0:
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        if os.path.exists(USERS_FILE):
+            try:
+                with open(USERS_FILE, 'r', encoding='utf-8') as f:
+                    old_users = json.load(f)
+                for u in old_users:
+                    cur.execute(
+                        'INSERT OR IGNORE INTO users (userid, username, pwd, remark, is_admin, is_active, created_at) VALUES (?,?,?,?,?,?,?)',
+                        (u.get('userid'), u.get('username'), u.get('pwd'), u.get('remark',''),
+                         1 if u.get('is_admin') else 0, 1, now)
+                    )
+                conn.commit()
+                app.logger.info('Migrated users.json -> users.db')
+            except Exception as exc:
+                app.logger.warning(f'User migration skipped: {exc}')
+        
+        # 確保有預設的測試帳號 A123, B123, C123
+        hashed = get_hash('1234')
+        test_users = [
+            ('A123', 'UserA (全權限)', hashed, '測試用，全 App', 0, 1, now),
+            ('B123', 'UserB (半權限)', hashed, '測試用，前 4 個 App', 0, 1, now),
+            ('C123', 'UserC (單權限)', hashed, '測試用，單一 App', 0, 1, now)
+        ]
+        for u in test_users:
+            cur.execute('INSERT OR IGNORE INTO users (userid, username, pwd, remark, is_admin, is_active, created_at) VALUES (?,?,?,?,?,?,?)', u)
+        conn.commit()
 
     # Migration & Seed: Apps
     cur.execute('SELECT COUNT(*) FROM apps')
@@ -149,6 +170,20 @@ def init_users_db():
                 )
             conn.commit()
             app.logger.info('Seed apps inserted.')
+            
+            # 給予測試帳號特定 App 權限
+            all_apps = cur.execute('SELECT id FROM apps ORDER BY sort_order, id').fetchall()
+            app_ids = [row[0] for row in all_apps]
+            if app_ids:
+                # A123: all
+                for aid in app_ids:
+                    cur.execute('INSERT OR IGNORE INTO user_app_access (userid, app_id) VALUES (?,?)', ('A123', aid))
+                # B123: first 4
+                for aid in app_ids[:4]:
+                    cur.execute('INSERT OR IGNORE INTO user_app_access (userid, app_id) VALUES (?,?)', ('B123', aid))
+                # C123: first 1
+                cur.execute('INSERT OR IGNORE INTO user_app_access (userid, app_id) VALUES (?,?)', ('C123', app_ids[0]))
+            conn.commit()
 
     # Migration: Token Logs
     cur.execute('SELECT COUNT(*) FROM token_log')
@@ -229,6 +264,52 @@ def db_get_all_apps(only_active=True):
         rows = conn.execute('SELECT * FROM apps ORDER BY sort_order ASC, id ASC').fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+def db_get_apps_for_user(userid: str):
+    """
+    實作白名單邏輯：
+    1. 檢查該 user 是否有任何授權設定。
+    2. 若有設定，僅列出有授權且 is_active=1 的 App。
+    3. 若無設定（沙盒模式），列出所有 is_active=1 的 App。
+    """
+    conn = get_db_conn()
+    
+    # 檢查是否有任何授權記錄
+    count_row = conn.execute('SELECT COUNT(*) FROM user_app_access WHERE userid=?', (userid,)).fetchone()
+    has_rules = count_row[0] > 0
+    
+    if has_rules:
+        query = '''
+            SELECT a.* FROM apps a
+            INNER JOIN user_app_access uaa ON a.id = uaa.app_id
+            WHERE uaa.userid = ? AND a.is_active = 1
+            ORDER BY a.sort_order ASC, a.id ASC
+        '''
+        rows = conn.execute(query, (userid,)).fetchall()
+    else:
+        rows = conn.execute('SELECT * FROM apps WHERE is_active=1 ORDER BY sort_order ASC, id ASC').fetchall()
+        
+    conn.close()
+    return [dict(r) for r in rows]
+
+def db_get_user_app_ids(userid: str):
+    """取得某位使用者的所有授權 App ID 清單"""
+    conn = get_db_conn()
+    rows = conn.execute('SELECT app_id FROM user_app_access WHERE userid=?', (userid,)).fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+def db_set_user_apps(userid: str, app_id_list: list):
+    """全量覆寫使用者的授權清單"""
+    conn = get_db_conn()
+    conn.execute('DELETE FROM user_app_access WHERE userid=?', (userid,))
+    for aid in app_id_list:
+        try:
+            conn.execute('INSERT INTO user_app_access (userid, app_id) VALUES (?,?)', (userid, int(aid)))
+        except (ValueError, sqlite3.IntegrityError):
+            continue
+    conn.commit()
+    conn.close()
 
 def db_get_app(app_id: int):
     conn = get_db_conn()
@@ -404,7 +485,15 @@ def chat_send():
     userid = session.get('userid', 'unknown')
 
     api_url = "http://api:5001/v1/chat-messages"
-    api_key = session.get('app_api_key', 'app-acUsw5zh3rZRqXrUJxyQ5v4d') # Fallback to default
+    # 優先取 session 中的 API Key，無則動態從 DB 撈 tsc_app 的金鑰
+    api_key = session.get('app_api_key')
+    if not api_key:
+        tsc = db_get_app_by_slug('tsc_app')
+        api_key = tsc.get('api_key', '') if tsc else ''
+        if api_key:
+            session['app_api_key'] = api_key  # 補存進 session
+        else:
+            return jsonify({"error": "API Key 未設定，請至後台設定 tsc_app 的 API Key"}), 400
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -485,7 +574,10 @@ def chat_feedback():
     userid = session.get('userid', 'unknown')
 
     api_url = f"http://api:5001/v1/messages/{message_id}/feedbacks"
-    api_key = session.get('app_api_key', 'app-acUsw5zh3rZRqXrUJxyQ5v4d') # Fallback
+    api_key = session.get('app_api_key')
+    if not api_key:
+        tsc = db_get_app_by_slug('tsc_app')
+        api_key = tsc.get('api_key', '') if tsc else ''
     
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -515,7 +607,8 @@ def logout():
 @app.route(PORTAL_PREFIX + '/apps')
 @login_required
 def apps_list():
-    apps = db_get_all_apps(only_active=True)
+    userid = session.get('userid')
+    apps = db_get_apps_for_user(userid)
     return render_template('apps.html', apps=apps, session=session, portal_prefix=PORTAL_PREFIX)
 
 # ======================== GATEWAY ROUTES ========================
@@ -666,6 +759,36 @@ def admin_token_log():
     for l in logs:
         l['timestamp'] = l['created_at']
     return render_template('admin/token_log.html', logs=logs, session=session, portal_prefix=PORTAL_PREFIX)
+
+@app.route(PORTAL_PREFIX + '/admin/user_apps', methods=['GET', 'POST'])
+@admin_required
+def admin_user_apps():
+    users = db_get_all_users()
+    apps = db_get_all_apps()
+    
+    # 預設選取第一位使用者 (或由 query 參數指定)
+    target_userid = request.args.get('userid') or (users[0]['userid'] if users else None)
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'update':
+            target_userid = request.form.get('userid')
+            # 取得被勾選的所有 app_id 陣列
+            selected_apps = request.form.getlist('app_ids')
+            db_set_user_apps(target_userid, selected_apps)
+            flash(f'已更新使用者 {target_userid} 的 App 存取權限', 'success')
+            return redirect(PORTAL_PREFIX + f'/admin/user_apps?userid={target_userid}')
+            
+    # 取得目標用目前的授權 app_id 清單
+    user_app_ids = db_get_user_app_ids(target_userid) if target_userid else []
+            
+    return render_template('admin/user_apps.html', 
+                           users=users, 
+                           apps=apps, 
+                           target_userid=target_userid,
+                           user_app_ids=user_app_ids,
+                           session=session, 
+                           portal_prefix=PORTAL_PREFIX)
 
 @app.route(PORTAL_PREFIX + '/admin/users', methods=['GET', 'POST'])
 @admin_required

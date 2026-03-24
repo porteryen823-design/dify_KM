@@ -10,7 +10,7 @@
         <div class="card h-100 shadow-sm border-0 border-top border-{{ theme }} border-4 rounded-3 hover-card">
             <div class="card-body p-4 d-flex flex-column">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h5 class="card-title fw-bold text-dark mb-0">{{ app.appname }}</h5>
+                    <h5 class="card-title fw-bold mb-0">{{ app.appname }}</h5>
                     {% if app.use_token %}
                     <span class="badge bg-success-subtle text-success rounded-pill small ms-2"><i class="bi bi-shield-lock-fill"></i> 安全</span>
                     {% endif %}
@@ -50,6 +50,7 @@
 <style>
 .hover-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .hover-card:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
-.bg-success-subtle { background-color: #d1e7dd; }
+/* Dark mode 相容：bg-success-subtle 在暗色下覆寫為小透明綠色 */
+[data-bs-theme="dark"] .bg-success-subtle { background-color: rgba(25, 135, 84, 0.25) !important; }
 </style>
 {% endblock %}

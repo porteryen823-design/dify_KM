@@ -64,6 +64,12 @@
                                 title="重設密碼">
                                 <i class="bi bi-key-fill"></i>
                             </button>
+                            <!-- 設定 App 權限 -->
+                            <a href="{{ portal_prefix }}/admin/user_apps?userid={{ user.userid }}" 
+                               class="btn btn-outline-info btn-sm rounded-circle me-1"
+                               title="設定 App 權限">
+                                <i class="bi bi-grid-3x3-gap-fill"></i>
+                            </a>
                             <!-- 刪除 -->
                             {% if user.userid != 'admin' %}
                             <form method="POST" action="{{ portal_prefix }}/admin/users" class="d-inline" onsubmit="return confirm('確定要刪除「{{ user.userid }}」嗎？');">

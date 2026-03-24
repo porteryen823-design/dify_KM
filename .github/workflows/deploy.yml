@@ -1,0 +1,65 @@
+name: Deploy Login-App to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'login-app/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    name: Build & Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/deploy_key.pem
+          chmod 600 ~/.ssh/deploy_key.pem
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync login-app files to EC2
+        run: |
+          rsync -avz --delete \
+            --exclude 'data/' \
+            -e "ssh -i ~/.ssh/deploy_key.pem -p ${{ secrets.EC2_PORT }}" \
+            ./login-app/ \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/apps/login-app/
+
+      - name: Deploy on EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          port: ${{ secrets.EC2_PORT }}
+          script: |
+            set -e
+            echo "=== [1/4] 進入部署目錄 ==="
+            cd ~/apps/login-app
+
+            echo "=== [2/4] 建立 data 目錄（若不存在） ==="
+            mkdir -p data
+
+            echo "=== [3/4] 重新 Build Docker 映像 ==="
+            docker build -t login-app:latest .
+
+            echo "=== [4/4] 重啟容器 ==="
+            docker stop login-app 2>/dev/null || true
+            docker rm login-app 2>/dev/null || true
+            docker run -d \
+              --name login-app \
+              --restart unless-stopped \
+              --network docker_default \
+              -p 5050:5050 \
+              -v ~/apps/login-app/data:/app/data \
+              login-app:latest
+
+            echo "=== ✅ 部署完成 ==="
+            docker ps | grep login-app

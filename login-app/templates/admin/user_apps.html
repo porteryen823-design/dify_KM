@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>使用者 App 權限管理</h2>
+        <p class="text-secondary">選擇使用者以設定其可訪問的 App。若為空表示使用全開權限 (沙盒模式預設行為)。</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 左側：選擇使用者 -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">步驟 1: 選擇帳號</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for u in users %}
+                    <a href="{{ portal_prefix }}/admin/user_apps?userid={{ u.userid }}" 
+                       class="list-group-item list-group-item-action {% if u.userid == target_userid %}active{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ u.userid }}</h6>
+                            {% if not u.is_active %}
+                                <span class="badge bg-danger rounded-pill">停用</span>
+                            {% elif u.is_admin %}
+                                <span class="badge bg-primary rounded-pill">管理員</span>
+                            {% endif %}
+                        </div>
+                        <small>{% if u.username %}{{ u.username }}{% else %}無名稱{% endif %}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側：設定 App 權限 -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">步驟 2: 設定可訪問的 App (帳號: {{ target_userid }})</h5>
+            </div>
+            <div class="card-body">
+                {% if target_userid %}
+                <form method="POST" action="{{ portal_prefix }}/admin/user_apps">
+                    <input type="hidden" name="action" value="update">
+                    <input type="hidden" name="userid" value="{{ target_userid }}">
+                    
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="selectAll(true)">全選</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm mb-2" onclick="selectAll(false)">全部取消</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;" class="text-center">授權</th>
+                                    <th>App 名稱</th>
+                                    <th>Slug</th>
+                                    <th class="text-center">狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in apps %}
+                                <tr {% if not a.is_active %}class="table-secondary text-muted"{% endif %}>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input app-checkbox" type="checkbox" name="app_ids" value="{{ a.id }}" 
+                                                   id="chk_{{ a.id }}"
+                                                   {% if a.id in user_app_ids %}checked{% endif %}>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <label class="form-check-label w-100" for="chk_{{ a.id }}" style="cursor: pointer;">
+                                            {{ a.appname }}
+                                        </label>
+                                    </td>
+                                    <td><code>{{ a.slug }}</code></td>
+                                    <td class="text-center">
+                                        {% if a.is_active %}
+                                            <span class="badge bg-success">啟用</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">停用</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> 儲存設定</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning">
+                    請先在左側選取一位使用者。
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectAll(check) {
+    const checkboxes = document.querySelectorAll('.app-checkbox');
+    checkboxes.forEach(cb => cb.checked = check);
+}
+</script>
+{% endblock %}
