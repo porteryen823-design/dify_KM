@@ -18,6 +18,7 @@
                         <th class="ps-4 rounded-top-start">排序/ID</th>
                         <th>App 名稱 / Slug</th>
                         <th>連結位址 (Address)</th>
+                        <th>API Key</th>
                         <th>安全及狀態</th>
                         <th class="text-end pe-4 rounded-top-end">操作</th>
                     </tr>
@@ -31,10 +32,18 @@
                         </td>
                         <td>
                             <div class="fw-bold text-dark">{{ app.appname }}</div>
-                            <code class="small text-muted">{{ app.slug }}</code>
+                            <div class="d-flex align-items-center gap-1">
+                                <code class="small text-muted">{{ app.slug }}</code>
+                                <a href="{{ portal_prefix }}/go/{{ app.slug }}" target="_blank" class="badge bg-light text-primary border text-decoration-none py-0 px-1" title="測試跳轉連結">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            </div>
                         </td>
                         <td class="text-truncate" style="max-width: 250px;">
                             <a href="{{ app.app_address }}" target="_blank" class="text-decoration-none text-primary small">{{ app.app_address }}</a>
+                        </td>
+                        <td>
+                            <code class="small text-muted">{% if app.api_key %}{{ app.api_key[:10] }}...{% else %}未設定{% endif %}</code>
                         </td>
                         <td>
                             {% if app.use_token %}
@@ -47,8 +56,8 @@
                             {% endif %}
                         </td>
                         <td class="text-end pe-4">
-                            <button class="btn btn-outline-primary btn-sm rounded-circle me-1" 
-                                    onclick="editApp({{ app|tojson }})" 
+                            <button class="btn btn-outline-primary btn-sm rounded-circle me-1 edit-app-btn" 
+                                    data-app='{{ app|tojson|safe }}'
                                     data-bs-toggle="modal" data-bs-target="#editModal">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
@@ -97,6 +106,10 @@
                   <div class="col-12">
                       <label class="form-label text-muted small fw-semibold">備註</label>
                       <input type="text" name="remark" class="form-control">
+                  </div>
+                  <div class="col-12">
+                      <label class="form-label text-muted small fw-semibold">Dify API Key</label>
+                      <input type="text" name="api_key" class="form-control" placeholder="app-...">
                   </div>
                   <div class="col-md-6">
                       <label class="form-label text-muted small fw-semibold">顯示序 (0-999)</label>
@@ -148,6 +161,10 @@
                       <label class="form-label text-muted small fw-semibold">備註</label>
                       <input type="text" name="remark" id="edit_remark" class="form-control">
                   </div>
+                  <div class="col-12">
+                      <label class="form-label text-muted small fw-semibold">Dify API Key</label>
+                      <input type="text" name="api_key" id="edit_api_key" class="form-control">
+                  </div>
                   <div class="col-md-6">
                       <label class="form-label text-muted small fw-semibold">顯示序 (0-999)</label>
                       <input type="number" name="sort_order" id="edit_sort_order" class="form-control">
@@ -196,20 +213,30 @@
           </div>
       </form>
     </div>
-  </div>
+    </div>
+    <div class="mt-4 text-center text-muted small">
+        **整理人：** Antigravity AI & Porter
+    </div>
 </div>
 
 <script>
-function editApp(app) {
-    document.getElementById('edit_id').value = app.id;
-    document.getElementById('edit_appname').value = app.appname;
-    document.getElementById('edit_slug').value = app.slug || '';
-    document.getElementById('edit_app_address').value = app.app_address;
-    document.getElementById('edit_remark').value = app.remark || '';
-    document.getElementById('edit_sort_order').value = app.sort_order;
-    document.getElementById('edit_use_token').checked = !!app.use_token;
-    document.getElementById('edit_is_active').checked = !!app.is_active;
-}
+document.addEventListener('DOMContentLoaded', function() {
+    const editBtns = document.querySelectorAll('.edit-app-btn');
+    editBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const app = JSON.parse(this.getAttribute('data-app'));
+            document.getElementById('edit_id').value = app.id;
+            document.getElementById('edit_appname').value = app.appname;
+            document.getElementById('edit_slug').value = app.slug || '';
+            document.getElementById('edit_app_address').value = app.app_address;
+            document.getElementById('edit_remark').value = app.remark || '';
+            document.getElementById('edit_api_key').value = app.api_key || '';
+            document.getElementById('edit_sort_order').value = app.sort_order;
+            document.getElementById('edit_use_token').checked = !!app.use_token;
+            document.getElementById('edit_is_active').checked = !!app.is_active;
+        });
+    });
+});
 </script>
 <style>
 .bg-success-subtle { background-color: #d1e7dd; }

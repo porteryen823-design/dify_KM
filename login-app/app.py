@@ -61,11 +61,34 @@ def init_users_db():
             app_address TEXT NOT NULL,
             remark      TEXT DEFAULT '',
             use_token   INTEGER DEFAULT 0,
+            api_key     TEXT DEFAULT '',
             sort_order  INTEGER DEFAULT 0,
             is_active   INTEGER DEFAULT 1,
             created_at  TEXT DEFAULT ''
         )
     ''')
+    # Token log table
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS token_log (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            token       TEXT UNIQUE NOT NULL,
+            userid      TEXT NOT NULL,
+            username    TEXT,
+            appname     TEXT,
+            created_at  TEXT DEFAULT ''
+        )
+    ''')
+    conn.commit()
+
+    # --- 自動升級舊版資料庫欄位 (Migration) ---
+    try:
+        cur.execute('ALTER TABLE apps ADD COLUMN api_key TEXT DEFAULT ""')
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass # 欄位已存在
+        
+    # 確保 TSC 機器人有預設金鑰 (若為空則補上)
+    cur.execute('UPDATE apps SET api_key="app-acUsw5zh3rZRqXrUJxyQ5v4d" WHERE slug="tsc_app" AND (api_key IS NULL OR api_key = "")')
     conn.commit()
 
     # Migration: Users
@@ -101,9 +124,9 @@ def init_users_db():
         if legacy_apps:
             for i, a in enumerate(legacy_apps):
                 cur.execute(
-                    'INSERT INTO apps (appname, slug, app_address, remark, use_token, sort_order, created_at) VALUES (?,?,?,?,?,?,?)',
+                    'INSERT INTO apps (appname, slug, app_address, remark, use_token, api_key, sort_order, created_at) VALUES (?,?,?,?,?,?,?,?)',
                     (a.get('appname'), a.get('slug',''), a.get('app_address'), a.get('remark',''),
-                     1 if a.get('use_token') else 0, i*10, now)
+                     1 if a.get('use_token') else 0, a.get('api_key', ''), i*10, now)
                 )
             conn.commit()
             app.logger.info('Migrated apps.json -> users.db')
@@ -121,11 +144,28 @@ def init_users_db():
             ]
             for i, (name, slug, addr, rem, tok) in enumerate(seeds):
                 cur.execute(
-                    'INSERT INTO apps (appname, slug, app_address, remark, use_token, sort_order, created_at) VALUES (?,?,?,?,?,?,?)',
-                    (name, slug, addr, rem, tok, i*10, now)
+                    'INSERT INTO apps (appname, slug, app_address, remark, use_token, api_key, sort_order, created_at) VALUES (?,?,?,?,?,?,?,?)',
+                    (name, slug, addr, rem, tok, 'app-acUsw5zh3rZRqXrUJxyQ5v4d' if slug == 'tsc_app' else '', i*10, now)
                 )
             conn.commit()
             app.logger.info('Seed apps inserted.')
+
+    # Migration: Token Logs
+    cur.execute('SELECT COUNT(*) FROM token_log')
+    if cur.fetchone()[0] == 0 and os.path.exists(TOKEN_LOG_FILE):
+        try:
+            with open(TOKEN_LOG_FILE, 'r', encoding='utf-8') as f:
+                old_logs = json.load(f)
+            if isinstance(old_logs, list):
+                for log in old_logs:
+                    cur.execute(
+                        'INSERT OR IGNORE INTO token_log (token, userid, username, appname, created_at) VALUES (?,?,?,?,?)',
+                        (log.get('token'), log.get('userid'), log.get('username'), log.get('appname'), log.get('timestamp'))
+                    )
+                conn.commit()
+                app.logger.info('Migrated token_log.json -> users.db')
+        except Exception as exc:
+            app.logger.warning(f'Token log migration skipped: {exc}')
 
     conn.close()
 
@@ -202,23 +242,23 @@ def db_get_app_by_slug(slug: str):
     conn.close()
     return dict(row) if row else None
 
-def db_add_app(appname, slug, app_address, remark, use_token, sort_order=0):
+def db_add_app(appname, slug, app_address, remark, use_token, api_key='', sort_order=0):
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = get_db_conn()
     cur = conn.execute(
-        'INSERT INTO apps (appname, slug, app_address, remark, use_token, sort_order, created_at) VALUES (?,?,?,?,?,?,?)',
-        (appname, slug, app_address, remark, 1 if use_token else 0, sort_order, now)
+        'INSERT INTO apps (appname, slug, app_address, remark, use_token, api_key, sort_order, created_at) VALUES (?,?,?,?,?,?,?,?)',
+        (appname, slug, app_address, remark, 1 if use_token else 0, api_key, sort_order, now)
     )
     conn.commit()
     new_id = cur.lastrowid
     conn.close()
     return new_id
 
-def db_update_app(app_id, appname, slug, app_address, remark, use_token, sort_order, is_active):
+def db_update_app(app_id, appname, slug, app_address, remark, use_token, api_key, sort_order, is_active):
     conn = get_db_conn()
     conn.execute(
-        'UPDATE apps SET appname=?, slug=?, app_address=?, remark=?, use_token=?, sort_order=?, is_active=? WHERE id=?',
-        (appname, slug, app_address, remark, 1 if use_token else 0, sort_order, 1 if is_active else 0, app_id)
+        'UPDATE apps SET appname=?, slug=?, app_address=?, remark=?, use_token=?, api_key=?, sort_order=?, is_active=? WHERE id=?',
+        (appname, slug, app_address, remark, 1 if use_token else 0, api_key, sort_order, 1 if is_active else 0, app_id)
     )
     conn.commit()
     conn.close()
@@ -254,23 +294,33 @@ def write_json(filepath, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def generate_access_token(userid: str, username: str, appname: str) -> str:
-    """Generate a UUID token and persist to token_log.json."""
-    token = uuid.uuid4().hex  # 32-char hex string
+    """Generate a UUID token and persist to database."""
+    token = uuid.uuid4().hex
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # 1. Store in memory for immediate hot lookup
     entry = {
         "token": token,
         "userid": userid,
         "username": username,
         "appname": appname,
-        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        "timestamp": now
     }
     _token_store[token] = entry
-    # Persist (keep last 2000 records)
-    logs = read_json(TOKEN_LOG_FILE)
-    if not isinstance(logs, list):
-        logs = []
-    logs.insert(0, entry)
-    trimmed: list = logs[:2000]
-    write_json(TOKEN_LOG_FILE, trimmed)
+
+    # 2. Persist to DB
+    conn = get_db_conn()
+    try:
+        conn.execute(
+            'INSERT INTO token_log (token, userid, username, appname, created_at) VALUES (?,?,?,?,?)',
+            (token, userid, username, appname, now)
+        )
+        conn.commit()
+    except Exception as e:
+        app.logger.error(f"Error persisting token: {e}")
+    finally:
+        conn.close()
+    
     return token
 
 # ======================== DECORATORS ========================
@@ -320,7 +370,9 @@ def login():
             session['userid'] = user['userid']
             session['username'] = user['username']
             session['is_admin'] = bool(user.get('is_admin', False))
-            return redirect(PORTAL_PREFIX + '/embedded_chat')
+            
+            # 修正：登入成功後導向原本想去的頁面 (next_url)
+            return redirect(next_url)
         else:
             flash("帳號或密碼錯誤，或帳號已被停用", "danger")
 
@@ -352,7 +404,7 @@ def chat_send():
     userid = session.get('userid', 'unknown')
 
     api_url = "http://api:5001/v1/chat-messages"
-    api_key = "app-acUsw5zh3rZRqXrUJxyQ5v4d"
+    api_key = session.get('app_api_key', 'app-acUsw5zh3rZRqXrUJxyQ5v4d') # Fallback to default
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -433,7 +485,7 @@ def chat_feedback():
     userid = session.get('userid', 'unknown')
 
     api_url = f"http://api:5001/v1/messages/{message_id}/feedbacks"
-    api_key = "app-acUsw5zh3rZRqXrUJxyQ5v4d"
+    api_key = session.get('app_api_key', 'app-acUsw5zh3rZRqXrUJxyQ5v4d') # Fallback
     
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -507,12 +559,42 @@ def goto_tsc_app():
     username = session.get('username', 'unknown')
     generate_access_token(userid, username, target['appname'])
     
+    # 將對應 App 的 API Key 存入 Session 供後續聊天調用
+    session['app_api_key'] = target.get('api_key', '')
+
     sep = '&' if '?' in path else '?'
     # 還原：使用 Dify 最原始支援的 user 參數，這會自動填入 Dify 的系統變數 sys.user_id
     final_path = f"{path}{sep}user={userid}"
     
     # Redirect to the embedded chat UI
     return redirect(url_for('embedded_chat'), code=302)
+
+@app.route(PORTAL_PREFIX + '/go/<slug>')
+@login_required
+def goto_app_by_slug(slug):
+    """
+    通用 Slug 入口：透過 Slug 找到對應 App 並執行跳轉。
+    範例：/portal/go/tsc_app
+    """
+    if slug == 'tsc_app':
+        return redirect(url_for('goto_tsc_app'))
+    
+    app_record = db_get_app_by_slug(slug)
+    if not app_record:
+        flash(f"找不到應用程式代碼: {slug}", "danger")
+        return redirect(PORTAL_PREFIX + '/apps')
+    
+    # 這裡可以根據 app_record 的設定決定如何跳轉
+    target_addr = app_record['app_address']
+    
+    # 如果是 Dify 相關網址，自動補上身分參數 (非 Token 模式)
+    if not app_record.get('use_token'):
+        sep = '&' if '?' in target_addr else '?'
+        userid = session.get('userid', 'unknown')
+        username = session.get('username', 'unknown')
+        target_addr = f"{target_addr}{sep}user={userid}"
+
+    return redirect(target_addr)
 
 @app.route(PORTAL_PREFIX + '/verify_token')
 def verify_token():
@@ -532,6 +614,26 @@ def verify_token():
             "username": entry['username'],
             "appname": entry['appname']
         })
+    
+    # 1.5 Try DB lookup if not in memory (e.g. after server restart)
+    if token:
+        conn = get_db_conn()
+        row = conn.execute('SELECT * FROM token_log WHERE token=?', (token,)).fetchone()
+        conn.close()
+        if row:
+            # Re-cache to memory
+            _token_store[token] = {
+                "userid": row['userid'],
+                "username": row['username'],
+                "appname": row['appname'],
+                "timestamp": row['created_at']
+            }
+            return jsonify({
+                "valid": True,
+                "userid": row['userid'],
+                "username": row['username'],
+                "appname": row['appname']
+            })
     
     # 2. If no token, try direct UserID lookup (for Dify integration)
     if user_id:
@@ -556,7 +658,13 @@ def admin_index():
 @app.route(PORTAL_PREFIX + '/admin/token_log')
 @admin_required
 def admin_token_log():
-    logs = read_json(TOKEN_LOG_FILE)
+    conn = get_db_conn()
+    rows = conn.execute('SELECT * FROM token_log ORDER BY id DESC LIMIT 2000').fetchall()
+    conn.close()
+    logs = [dict(r) for r in rows]
+    # Rename created_at to timestamp for template compatibility
+    for l in logs:
+        l['timestamp'] = l['created_at']
     return render_template('admin/token_log.html', logs=logs, session=session, portal_prefix=PORTAL_PREFIX)
 
 @app.route(PORTAL_PREFIX + '/admin/users', methods=['GET', 'POST'])
@@ -659,8 +767,9 @@ def admin_apps():
             addr = request.form.get('app_address', '').strip()
             rem = request.form.get('remark', '')
             tok = request.form.get('use_token') == 'on'
+            key = request.form.get('api_key', '').strip()
             sort = int(request.form.get('sort_order', 0))
-            db_add_app(app_name, slug, addr, rem, tok, sort)
+            db_add_app(app_name, slug, addr, rem, tok, key, sort)
             flash("新增應用程式成功", "success")
         elif action == 'edit':
             aid = int(request.form.get('id'))
@@ -669,9 +778,10 @@ def admin_apps():
             addr = request.form.get('app_address', '').strip()
             rem = request.form.get('remark', '')
             tok = request.form.get('use_token') == 'on'
+            key = request.form.get('api_key', '').strip()
             sort = int(request.form.get('sort_order', 0))
             active = request.form.get('is_active') == 'on'
-            db_update_app(aid, app_name, slug, addr, rem, tok, sort, active)
+            db_update_app(aid, app_name, slug, addr, rem, tok, key, sort, active)
             flash("更新應用程式成功", "success")
         elif action == 'delete':
             aid = request.form.get('id')
@@ -688,7 +798,7 @@ def admin_apps():
 def export_apps():
     apps = db_get_all_apps(only_active=False)
     si = StringIO()
-    cw = csv.DictWriter(si, fieldnames=['id', 'appname', 'slug', 'app_address', 'remark', 'use_token', 'sort_order', 'is_active', 'created_at'])
+    cw = csv.DictWriter(si, fieldnames=['id', 'appname', 'slug', 'app_address', 'remark', 'use_token', 'api_key', 'sort_order', 'is_active', 'created_at'])
     cw.writeheader()
     cw.writerows(apps)
     output = si.getvalue().encode('utf-8-sig')
@@ -706,16 +816,17 @@ def import_apps():
         reader = csv.DictReader(stream)
         count = 0
         for row in reader:
-            aname = row.get('appname', '').strip()
+            aname = (row.get('appname') or '').strip()
             if not aname: continue
-            slug = row.get('slug', '').strip()
-            addr = row.get('app_address', '').strip()
-            rem = row.get('remark', '')
+            slug = (row.get('slug') or '').strip()
+            addr = (row.get('app_address') or '').strip()
+            rem = (row.get('remark') or '').strip()
             tok = str(row.get('use_token', '')).lower() in ['true', '1', 'yes']
+            key = (row.get('api_key') or '').strip()
             sort = int(row.get('sort_order', 0))
             
             # Simple merge: add if not exists
-            db_add_app(aname, slug, addr, rem, tok, sort)
+            db_add_app(aname, slug, addr, rem, tok, key, sort)
             count += 1
         flash(f"成功匯入 {count} 筆應用程式", "success")
     except Exception as e:
