@@ -1,0 +1,37 @@
+[
+  {
+    "userid": "admin",
+    "username": "系統管理員",
+    "pwd": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "remark": "管理員",
+    "is_admin": true
+  },
+  {
+    "userid": "A123",
+    "username": "A123",
+    "pwd": "44b6e7cc9a53c0a1cd5cfb7e99eb9c5ec6750f5081918177ee0bf6e0b9c4456b",
+    "remark": "",
+    "is_admin": false
+  },
+  {
+    "userid": "B123",
+    "username": "B123",
+    "pwd": "92bc214a3172d696bfea4bb97f5989b440a6595f06b5c181266b95755afcc66c",
+    "remark": "",
+    "is_admin": false
+  },
+  {
+    "userid": "C123",
+    "username": "C123",
+    "pwd": "abefcf257b5d2ff2816a68ec7c84ec8c11e0e0dc4f3425dfe08b29e9b9e5e3b9",
+    "remark": "",
+    "is_admin": false
+  },
+  {
+    "userid": "D123",
+    "username": "D123",
+    "pwd": "e8232a52fb67da187a493c90e6d8005b8f01ff40c310bf1b87f1cd1b61e5fab8",
+    "remark": "",
+    "is_admin": false
+  }
+]

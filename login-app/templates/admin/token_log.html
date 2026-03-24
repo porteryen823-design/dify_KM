@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h3 class="fw-bold"><i class="bi bi-journal-text"></i> 存取日誌（Token → 帳號對應）</h3>
+    <span class="badge bg-secondary">共 {{ logs|length }} 筆</span>
+</div>
+
+<div class="alert alert-info py-2 small">
+    <i class="bi bi-info-circle-fill"></i> 每次使用者點擊「安全模式」的 App 時，系統會自動記錄一筆 Token 對應真實帳號的紀錄。即使使用者修改了網址中的 Token，以下的對應表仍是權威來源。
+</div>
+
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">時間</th>
+                        <th>帳號 (UserID)</th>
+                        <th>顯示名稱</th>
+                        <th>存取 App</th>
+                        <th class="pe-4" style="max-width:280px;">Token</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="ps-4 text-muted small">{{ log.timestamp }}</td>
+                        <td class="fw-semibold">{{ log.userid }}</td>
+                        <td>{{ log.username }}</td>
+                        <td><span class="badge bg-primary-subtle text-primary rounded-pill">{{ log.appname }}</span></td>
+                        <td class="pe-4"><code class="small text-break" style="font-size:0.7rem;">{{ log.token }}</code></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">尚無存取記錄</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<style>.bg-primary-subtle { background-color: #cfe2ff; }</style>
+{% endblock %}

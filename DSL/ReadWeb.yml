@@ -1,0 +1,301 @@
+app:
+  description: 測試使用, 寫流程用, 非完整 V0.1
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: 測試用workflow
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: if-else
+      id: start-to-check
+      source: '1774086421394'
+      sourceHandle: source
+      target: check_session
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: check-to-login
+      source: check_session
+      sourceHandle: 'true'
+      target: '1774086156562'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: end
+      id: check-to-end
+      source: check_session
+      sourceHandle: 'false'
+      target: '1774086276907'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 1774086156562-source-1774086235235-target
+      source: '1774086156562'
+      sourceHandle: source
+      target: '1774086235235'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1774086235235-source-1774086276907-target
+      source: '1774086235235'
+      sourceHandle: source
+      target: '1774086276907'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: not contains
+            id: cond-user-exists
+            value: 'A'
+            variable_selector:
+            - sys
+            - user_id
+          id: 'true'
+          logical_operator: and
+        desc: 檢查是否已有登入資訊。若 session_user_id 為空或不符合格式，則執行解析。
+        selected: false
+        title: 是否需解析登入？
+        type: if-else
+      height: 121
+      id: check_session
+      position:
+        x: 280
+        y: 24
+      positionAbsolute:
+        x: 280
+        y: 24
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(query: str) -> dict:\n    try:\n        obj = json.loads(query)\n        if obj.get(\"type\") == \"login\":\n            data = obj.get(\"data\", {})\n            return {\n                \"user_id\": data.get(\"user_id\", \"\"),\n                \"username\": data.get(\"username\", \"\"),\n                \"role\": data.get(\"role\", \"\"),\n                \"department\": data.get(\"department\", \"\"),\n                \"is_login\": \"True\"\n            }\n    except Exception as e:\n        pass\n\n    return {\n        \"user_id\": \"\",\n        \"username\": \"\",\n        \"role\": \"\",\n        \"department\": \"\",\n        \"is_login\": \"False\"\n    }"
+        code_language: python3
+        outputs:
+          user_id:
+            type: string
+            children: null
+          username:
+            type: string
+            children: null
+          role:
+            type: string
+            children: null
+          department:
+            type: string
+            children: null
+          is_login:
+            type: string
+            children: null
+        selected: false
+        title: 解析登入資訊
+        type: code
+        variables:
+        - value_selector:
+          - '1774086421394'
+          - query
+          variable: query
+      height: 51
+      id: '1774086156562'
+      position:
+        x: 600
+        y: -100
+      positionAbsolute:
+        x: 600
+        y: -100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "def main(user_id: str, username: str, role: str, department: str, is_login: str) -> dict:\n    return {\n        \"session_user_id\": user_id,\n        \"session_username\": username,\n        \"session_role\": role,\n        \"session_department\": department,\n        \"session_is_login\": is_login\n    }"
+        code_language: python3
+        outputs:
+          session_user_id:
+            type: string
+            children: null
+          session_username:
+            type: string
+            children: null
+          session_role:
+            type: string
+            children: null
+          session_department:
+            type: string
+            children: null
+          session_is_login:
+            type: string
+            children: null
+        selected: false
+        title: Save to Session variables
+        type: code
+        variables:
+        - value_selector:
+          - '1774086156562'
+          - user_id
+          variable: user_id
+        - value_selector:
+          - '1774086156562'
+          - username
+          variable: username
+        - value_selector:
+          - '1774086156562'
+          - role
+          variable: role
+        - value_selector:
+          - '1774086156562'
+          - department
+          variable: department
+        - value_selector:
+          - '1774086156562'
+          - is_login
+          variable: is_login
+      height: 51
+      id: '1774086235235'
+      position:
+        x: 900
+        y: -100
+      positionAbsolute:
+        x: 900
+        y: -100
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        outputs:
+        - value_selector:
+          - '1774086235235'
+          - session_user_id
+          value_type: string
+          variable: user_id
+        - value_selector:
+          - '1774086235235'
+          - session_is_login
+          value_type: string
+          variable: is_login
+        selected: false
+        title: 輸出
+        type: end
+      height: 88
+      id: '1774086276907'
+      position:
+        x: 1200
+        y: 200
+      positionAbsolute:
+        x: 1200
+        y: 200
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        selected: false
+        title: 開始
+        type: start
+        variables:
+        - label: query
+          max_length: 256
+          options: []
+          required: true
+          type: text-input
+          variable: query
+      height: 72
+      id: '1774086421394'
+      position:
+        x: 5
+        y: 24
+      positionAbsolute:
+        x: 5
+        y: 24
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 50
+      y: 88
+      zoom: 1
+  rag_pipeline_variables: []

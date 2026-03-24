@@ -30,14 +30,12 @@ if (!(Test-Path $TargetFolder)) {
 
 # 2. Safety Backup (Pre-Restore Snapshot)
 Write-Log "Safety: Creating pre-restore backup..."
-try {
-    # Run the backup script
-    powershell.exe -ExecutionPolicy Bypass -File $BackupScript
-    Write-Log "Safety: Pre-restore backup completed."
-} catch {
-    Write-Log "Error: Safety backup failed. Aborting restore."
+powershell.exe -ExecutionPolicy Bypass -File $BackupScript
+if ($LASTEXITCODE -ne 0) {
+    Write-Log "Error: Safety backup failed (Exit Code $LASTEXITCODE). Aborting restore to protect current data."
     exit 1
 }
+Write-Log "Safety: Pre-restore backup completed."
 
 # 3. Confirmation
 if (!$Force) {
@@ -72,6 +70,17 @@ if ($PgZip) {
     Expand-Archive -Path $PgZip.FullName -DestinationPath $TempDir -Force
     $SqlFile = Get-ChildItem -Path $TempDir -Filter "*.sql" | Select-Object -First 1
     
+    # Wait for PostgreSQL to be ready
+    Write-Log "    Waiting for PostgreSQL to be ready..."
+    $retryCount = 0
+    while ($retryCount -lt 12) {
+        $check = docker exec docker-db_postgres-1 pg_isready -U postgres 2>&1
+        if ($LASTEXITCODE -eq 0) { break }
+        Write-Log "    PostgreSQL not ready, waiting 5s... ($($retryCount+1)/12)"
+        Start-Sleep -Seconds 5
+        $retryCount++
+    }
+
     # Drop schema to ensure clean slate
     docker exec docker-db_postgres-1 psql -U postgres -d dify -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
     docker cp $SqlFile.FullName "docker-db_postgres-1:/tmp/restore.sql"

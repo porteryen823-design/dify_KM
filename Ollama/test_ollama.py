@@ -10,7 +10,8 @@ if sys.platform == 'win32':
 
 def main():
     # 設定目標伺服器位址與模型名稱@
-    OLLAMA_URL = "http://192.168.0.126:11434/api/generate"
+    #OLLAMA_URL = "http://192.168.0.126:11434/api/generate"
+    OLLAMA_URL = "http://gyro1.ddns.net:11434/api/generate"
     MODEL_NAME = "gpt-oss:20b"
     #MODEL_NAME = "minimax-m2.5:cloud"
     # 準備發送給 Ollama 的內容

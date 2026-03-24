@@ -1,0 +1,16 @@
+[
+  {
+    "appname": "TSC 機器人",
+    "slug": "tsc_app",
+    "app_address": "http://localhost:8080/chatbot/8hX6JrWtbF4PtgOm",
+    "remark": "TSC 問答機器人（需登入，使用 Token 追蹤）",
+    "use_token": true
+  },
+  {
+    "appname": "桃花源 文學助手 問答機器人",
+    "slug": "peach_app",
+    "app_address": "http://localhost:8080/chat/Bz1Fu6QocQG8EUIY",
+    "remark": "桃花源 文學助手",
+    "use_token": false
+  }
+]

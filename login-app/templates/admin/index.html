@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h3 class="fw-bold"><i class="bi bi-speedometer2"></i> 管理中心總覽</h3>
+</div>
+<div class="row g-4 text-center">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 py-4">
+            <div class="card-body">
+                <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
+                <h4 class="fw-bold mt-3">使用者管理</h4>
+                <p class="text-muted">新增、刪除使用者或進行批次匯入匯出。</p>
+                <a href="{{ portal_prefix }}/admin/users" class="btn btn-primary px-4 rounded-pill">前往管理</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 py-4">
+            <div class="card-body">
+                <i class="bi bi-layers-fill text-success" style="font-size: 3rem;"></i>
+                <h4 class="fw-bold mt-3">App 管理</h4>
+                <p class="text-muted">新增、刪除 App 清單或進行批次匯入匯出。</p>
+                <a href="{{ portal_prefix }}/admin/apps" class="btn btn-success px-4 rounded-pill">前往管理</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 py-4">
+            <div class="card-body">
+                <i class="bi bi-journal-text text-warning" style="font-size: 3rem;"></i>
+                <h4 class="fw-bold mt-3">存取日誌</h4>
+                <p class="text-muted">查看 Token → 真實帳號對應紀錄，追蹤使用者行為。</p>
+                <a href="{{ portal_prefix }}/admin/token_log" class="btn btn-warning px-4 rounded-pill">查看日誌</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

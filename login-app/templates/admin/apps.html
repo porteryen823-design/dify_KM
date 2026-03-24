@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <h3 class="fw-bold"><i class="bi bi-layers-fill"></i> App 清單管理</h3>
+    <div>
+        <a href="{{ portal_prefix }}/admin/apps/export" class="btn btn-outline-secondary btn-sm me-2"><i class="bi bi-download"></i> 匯出 CSV</a>
+        <button class="btn btn-outline-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bi bi-upload"></i> 匯入 CSV</button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg"></i> 新增 App</button>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 rounded-top-start">排序/ID</th>
+                        <th>App 名稱 / Slug</th>
+                        <th>連結位址 (Address)</th>
+                        <th>安全及狀態</th>
+                        <th class="text-end pe-4 rounded-top-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in apps %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="badge bg-light text-dark border">{{ app.sort_order }}</span>
+                            <small class="text-muted ms-1">#{{ app.id }}</small>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ app.appname }}</div>
+                            <code class="small text-muted">{{ app.slug }}</code>
+                        </td>
+                        <td class="text-truncate" style="max-width: 250px;">
+                            <a href="{{ app.app_address }}" target="_blank" class="text-decoration-none text-primary small">{{ app.app_address }}</a>
+                        </td>
+                        <td>
+                            {% if app.use_token %}
+                            <span class="badge bg-success-subtle text-success rounded-pill small me-1"><i class="bi bi-shield-lock"></i> Token</span>
+                            {% endif %}
+                            {% if app.is_active %}
+                            <span class="badge bg-info-subtle text-info rounded-pill small">啟用</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill small">停用</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-outline-primary btn-sm rounded-circle me-1" 
+                                    onclick="editApp({{ app|tojson }})" 
+                                    data-bs-toggle="modal" data-bs-target="#editModal">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <form method="POST" action="{{ portal_prefix }}/admin/apps" class="d-inline" onsubmit="return confirm('確定要刪除該 App 嗎？');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="id" value="{{ app.id }}">
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle"><i class="bi bi-trash3-fill"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">尚無資料</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 新增 App Modal -->
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold">新增 App</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ portal_prefix }}/admin/apps">
+          <input type="hidden" name="action" value="add">
+          <div class="modal-body">
+              <div class="row g-3">
+                  <div class="col-md-6">
+                      <label class="form-label text-muted small fw-semibold">App 顯示名稱</label>
+                      <input type="text" name="appname" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                      <label class="form-label text-muted small fw-semibold">Slug (別名)</label>
+                      <input type="text" name="slug" class="form-control" placeholder="例如: tsc_app">
+                  </div>
+                  <div class="col-12">
+                      <label class="form-label text-muted small fw-semibold">連結位址 (URL)</label>
+                      <input type="text" name="app_address" class="form-control" required placeholder="http://...">
+                  </div>
+                  <div class="col-12">
+                      <label class="form-label text-muted small fw-semibold">備註</label>
+                      <input type="text" name="remark" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                      <label class="form-label text-muted small fw-semibold">顯示序 (0-999)</label>
+                      <input type="number" name="sort_order" class="form-control" value="0">
+                  </div>
+                  <div class="col-md-6 d-flex align-items-end mb-2">
+                       <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" name="use_token">
+                          <label class="form-check-label small fw-semibold">啟用安全 Token</label>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">取消</button>
+            <button type="submit" class="btn btn-primary rounded-pill px-4">儲存</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 編輯 App Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold">編輯 App</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ portal_prefix }}/admin/apps">
+          <input type="hidden" name="action" value="edit">
+          <input type="hidden" name="id" id="edit_id">
+          <div class="modal-body">
+              <div class="row g-3">
+                  <div class="col-md-6">
+                      <label class="form-label text-muted small fw-semibold">App 顯示名稱</label>
+                      <input type="text" name="appname" id="edit_appname" class="form-control" required>
+                  </div>
+                  <div class="col-md-6">
+                      <label class="form-label text-muted small fw-semibold">Slug (別名)</label>
+                      <input type="text" name="slug" id="edit_slug" class="form-control">
+                  </div>
+                  <div class="col-12">
+                      <label class="form-label text-muted small fw-semibold">連結位址 (URL)</label>
+                      <input type="text" name="app_address" id="edit_app_address" class="form-control" required>
+                  </div>
+                  <div class="col-12">
+                      <label class="form-label text-muted small fw-semibold">備註</label>
+                      <input type="text" name="remark" id="edit_remark" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                      <label class="form-label text-muted small fw-semibold">顯示序 (0-999)</label>
+                      <input type="number" name="sort_order" id="edit_sort_order" class="form-control">
+                  </div>
+                  <div class="col-md-6 pt-4">
+                       <div class="form-check form-switch mb-2">
+                          <input class="form-check-input" type="checkbox" name="use_token" id="edit_use_token">
+                          <label class="form-check-label small fw-semibold">安全 Token</label>
+                      </div>
+                      <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" name="is_active" id="edit_is_active">
+                          <label class="form-check-label small fw-semibold">啟用狀態</label>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">取消</button>
+            <button type="submit" class="btn btn-primary rounded-pill px-4">儲存更新</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 匯入 Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold">匯入 App (CSV)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ portal_prefix }}/admin/apps/import" enctype="multipart/form-data">
+          <div class="modal-body py-4">
+              <div class="mb-3">
+                  <input type="file" name="file" accept=".csv" class="form-control" required>
+              </div>
+              <div class="alert alert-info py-2 small mb-0">
+                  <i class="bi bi-info-circle-fill"></i> 標題列：<code>appname,slug,app_address,remark,use_token,sort_order</code>
+              </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0">
+            <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">取消</button>
+            <button type="submit" class="btn btn-success rounded-pill px-4">上傳</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function editApp(app) {
+    document.getElementById('edit_id').value = app.id;
+    document.getElementById('edit_appname').value = app.appname;
+    document.getElementById('edit_slug').value = app.slug || '';
+    document.getElementById('edit_app_address').value = app.app_address;
+    document.getElementById('edit_remark').value = app.remark || '';
+    document.getElementById('edit_sort_order').value = app.sort_order;
+    document.getElementById('edit_use_token').checked = !!app.use_token;
+    document.getElementById('edit_is_active').checked = !!app.is_active;
+}
+</script>
+<style>
+.bg-success-subtle { background-color: #d1e7dd; }
+.bg-info-subtle { background-color: #cff4fc; }
+.bg-secondary-subtle { background-color: #e2e3e5; }
+</style>
+{% endblock %}
