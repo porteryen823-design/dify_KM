@@ -1,0 +1,448 @@
+app:
+  description: '自然語言聯絡人查詢機器人，透過 LLM 生成 SQL 來查詢聯絡資訊。 V0.2 '
+  icon: 🤖
+  icon_background: '#EFF1F5'
+  mode: advanced-chat
+  name: 自然語言聯絡人查詢機器人
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 1
+    opening_statement: '您好！我是自然語言查詢機器人 📋
+
+
+      您可以這樣問我：
+
+      - **查帳號**：「A123 的連絡資訊是什麼？」
+
+      - **查 WeChat**：「wechat_a123 是誰？」
+
+      - **模糊搜尋**：「幫我找姓名含 UserB 的聯絡人」
+
+      - **條件查詢**：「分機 101 是誰？」'
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - A123 的連絡資訊是什麼？
+    - 分機 101 是誰？
+    - wechat_b123 是哪個帳號？
+    - 分機 開頭1 的有誰？
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: llm
+      id: edge-start-to-extract
+      source: start
+      sourceHandle: source
+      target: llm_extract
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: code
+      id: edge-extract-to-clean
+      source: llm_extract
+      sourceHandle: source
+      target: code_clean
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: code
+        targetType: http-request
+      id: edge-clean-to-http
+      source: code_clean
+      sourceHandle: source
+      target: http_query
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: http-request
+        targetType: if-else
+      id: edge-http-to-ifelse
+      source: http_query
+      sourceHandle: source
+      target: check_result
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: llm
+      id: edge-ifelse-true-llm
+      source: check_result
+      sourceHandle: 'true'
+      target: llm_answer
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: if-else
+        targetType: answer
+      id: edge-ifelse-false-notfound
+      source: check_result
+      sourceHandle: 'false'
+      target: answer_not_found
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: edge-llm-to-output
+      source: llm_answer
+      sourceHandle: source
+      target: answer_output
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 使用者輸入問題
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 101
+      id: start
+      position:
+        x: 30
+        y: 240
+      positionAbsolute:
+        x: 30
+        y: 240
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - sys
+          - query
+        desc: 分析使用者問題，生成 SQL 語法
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: sys-extract-02
+          role: system
+          text: "你是一個專業的資料庫查詢助手，任務是將使用者的自然語言問題轉換成精確的 SQLite 取出 (SELECT) 語法。\n\n我們的\
+            \ users 資料表 Schema 如下：\nCREATE TABLE users (\n    userid      TEXT PRIMARY\
+            \ KEY,\n    username    TEXT NOT NULL,\n    pwd         TEXT NOT NULL,\n\
+            \    remark      TEXT DEFAULT \"\",\n    is_admin    INTEGER DEFAULT 0,\n\
+            \    is_active   INTEGER DEFAULT 1,\n    created_at  TEXT DEFAULT \"\"\
+            ,\n    phone       TEXT DEFAULT \"\",\n    ext         TEXT DEFAULT \"\
+            \",\n    email       TEXT DEFAULT \"\",\n    wechat      TEXT DEFAULT\
+            \ \"\"\n);\n\n轉換規則：\n1. 限用 SELECT 查詢，絕對不可以使用任何 DROP、DELETE、UPDATE、INSERT\
+            \ 語法。\n2. 避免取出密碼 (pwd) 以及其他不必要的欄位，建議只取: userid, username, phone, ext,\
+            \ email, wechat, remark, is_active\n3. 若提到帳號、分機、微信，請對應 userid、ext、wechat\
+            \ 等欄位做精確搜尋。例如: ext = '101'。\n4. 若提到人名或關鍵字，請針對 username 等可能欄位做擴充模糊搜尋 LIKE\
+            \ '%...%'。\n5. 請直接、唯一地輸出一條合法的 SQL 字串，不可包含 markdown 標籤，不可有任何引導語。\n\n範例對照：\n\
+            問題：A123 的連絡資訊是什麼？\n回應：SELECT userid, username, phone, ext, email, wechat,\
+            \ remark, is_active FROM users WHERE userid = 'A123';\n問題：分機 101 是誰？\n\
+            回應：SELECT userid, username, phone, ext, email, wechat, remark, is_active\
+            \ FROM users WHERE ext = '101';\n問題：wechat_b123 是哪個帳號？\n回應：SELECT userid,\
+            \ username, phone, ext, email, wechat, remark, is_active FROM users WHERE\
+            \ wechat = 'wechat_b123';\n"
+        - id: usr-extract-02
+          role: user
+          text: '{{#sys.query#}}'
+        selected: false
+        title: SQL 生成
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 122
+      id: llm_extract
+      position:
+        x: 388
+        y: 195
+      positionAbsolute:
+        x: 388
+        y: 195
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        code: "import re\n\ndef main(llm_text: str) -> dict:\n    # 1. 移除 <think>\
+          \ 推理區域\n    text = re.sub(r'<think>[\\s\\S]*?<\\/think>', '', llm_text)\n\
+          \    # 2. 清除 Markdown 標籤 (例如 ```sql ... ```)\n    text = re.sub(r'```sql\\\
+          n?', '', text)\n    text = re.sub(r'```\\n?', '', text)\n    text = text.strip()\n\
+          \    # 3. 移除結尾的分號 (SQL 結尾的分號有時會導致 JSON 傳輸異常)\n    if text.endswith(';'):\n\
+          \        text = text[:-1].strip()\n    # 4. 再進行換行清除並轉換成單行\n    text = re.sub(r'\\\
+          s+', ' ', text).strip()\n    # 5. 安全檢查 (不是 SELECT 開頭就阻止)\n    if not text.upper().startswith('SELECT'):\n\
+          \        text = 'SELECT userid, username, phone, ext, email, wechat, remark,\
+          \ is_active FROM users WHERE 1=0'\n    return {'sql': text}\n"
+        code_language: python3
+        desc: 清理 LLM 生成的 SQL，過濾標籤、分號與不安全前綴。
+        outputs:
+          sql:
+            children: null
+            type: string
+        selected: false
+        title: 清洗與驗證 SQL
+        type: code
+        variables:
+        - value_selector:
+          - llm_extract
+          - text
+          variable: llm_text
+      height: 96
+      id: code_clean
+      position:
+        x: 680
+        y: 195
+      positionAbsolute:
+        x: 680
+        y: 195
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - type: text
+            value: '{"sql": "{{#code_clean.sql#}}"}'
+          type: json
+        desc: 呼叫 login-app 的內部執行 SQL API，傳入 code 節點清洗後的 SQL 端。
+        headers: ''
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 1
+          retry_enabled: true
+          retry_on:
+          - 429
+          - 500
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 10
+          max_execution_time: 30
+          read: 20
+        title: 執行 SQL
+        type: http-request
+        url: http://login_app:5050/api/v1/sql-query
+        variables: []
+      height: 182
+      id: http_query
+      position:
+        x: 653.9322111271348
+        y: 410.31764944065594
+      positionAbsolute:
+        x: 653.9322111271348
+        y: 410.31764944065594
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: '>'
+            value: '0'
+            varType: number
+            variable_selector:
+            - http_query
+            - status_code
+          id: 'true'
+          logical_operator: and
+        desc: 確保有正確查到資料 (或是回傳狀態碼正常) 後繼續整理文字。
+        selected: false
+        title: 是否查詢成功？
+        type: if-else
+      height: 168
+      id: check_result
+      position:
+        x: 920
+        y: 195
+      positionAbsolute:
+        x: 920
+        y: 195
+      selected: false
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: 讓 LLM 將資料庫取回的 JSON 轉換成順暢的回答。
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: sys-answer-01
+          role: system
+          text: "你是一個專業的資料查詢與整理助手。\n請根據提供的 JSON 資料，以繁體中文回答。\n\n格式規範：\n1. 若 count 為 0\
+            ，請回覆：「查無此人，請確認輸入條件是否正確。」\n2. 若 count > 0，請為「每一筆」聯絡人產出一個獨立的垂直 Markdown 表格。\n\
+            3. **重要渲染規則**：在「第一個表格」開始之前（即回答的最開頭），以及「每個表格之間」，都必須額外輸入「兩個換行符號」，以確保 Markdown\
+            \ 在網頁上能正確渲染成表格，且表格前後不應有任何多餘的引導語。\n\n表格結構範例（垂直格式）：\n\n| 欄位 | 內容 |\n|:---:|:---|\n\
+            | \U0001F464 帳號 | {userid} |\n| \U0001F464 姓名 | {username} |\n| \U0001F4DE\
+            \ 電話 | {phone} # {ext} |\n| ✉️ Email | {email} |\n| \U0001F4AC WeChat\
+            \ | {wechat} |\n| \U0001F4DD 備註 | {remark} |\n\n額外顯示邏輯：\n- 若 is_active 為\
+            \ 0，請在備註欄位加上：⚠️ **此帳號已停用**\n- 若欄位不存在或為空串，內容請填寫為「-」。\n- **禁止輸出**任何表格以外的贅詞或 Markdown\
+            \ 代碼塊標籤（即禁止輸出 ```）。直接開始輸出表格內容即可。\n"
+        - id: usr-answer-01
+          role: user
+          text: '使用者問題：{{#sys.query#}}
+
+
+            API 回傳結果：
+
+            {{#http_query.body#}}
+
+            '
+        selected: false
+        title: 生成最終回答
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 138
+      id: llm_answer
+      position:
+        x: 1220
+        y: 120
+      positionAbsolute:
+        x: 1220
+        y: 120
+      selected: true
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#llm_answer.text#}}'
+        desc: 顯示最終自然語言。
+        selected: false
+        title: 回答
+        type: answer
+      height: 131
+      id: answer_output
+      position:
+        x: 1520
+        y: 120
+      positionAbsolute:
+        x: 1520
+        y: 120
+      type: custom
+      width: 242
+    - data:
+        answer: '抱歉，查詢過程發生問題，無法取得資料。😕
+
+
+          請確認：
+
+          - 後端服務是否正常運作
+
+          - 輸入是否包含不支援的語法或字元'
+        desc: 若沒有正確狀態碼代表 API 錯誤。
+        selected: false
+        title: 查詢失敗
+        type: answer
+      height: 176
+      id: answer_not_found
+      position:
+        x: 1220
+        y: 320
+      positionAbsolute:
+        x: 1220
+        y: 320
+      type: custom
+      width: 242
+    - data:
+        author: admin
+        desc: ''
+        height: 268
+        selected: false
+        showAuthor: true
+        text: '{"root":{"children":[{"children":[{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"問題原因","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":"：Dify
+          與您的後端服務在同一個 Docker 專案中。當 Dify 嘗試透過 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"","text":"host.docker.internal","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":" 存取時，有時會因為
+          Docker Desktop 的網路設定或防火牆規則而連不上。","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"textFormat":1,"value":1},{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"解決方案","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":"：在
+          Docker 內部網路中，最穩定且高效的連線方式是直接使用 ","type":"text","version":1},{"detail":0,"format":1,"mode":"normal","style":"","text":"容器名稱","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":" 字串。您的後端容器名稱為 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"","text":"dify-login_app-1","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":"，且在網路上有個別名為 ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"","text":"login_app","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":"。","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"textFormat":1,"value":2},{"children":[],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"value":3}],"direction":null,"format":"","indent":0,"type":"list","version":1,"textFormat":1,"listType":"number","start":1,"tag":"ol"},{"children":[{"detail":0,"format":0,"mode":"normal","style":"","text":"我已經更新了
+          DSL 中的 URL：","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"paragraph","version":1,"textFormat":0,"textStyle":""},{"children":[{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"舊
+          URL","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":": ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"","text":"http://host.docker.internal:5050/api/v1/sql-query","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"textFormat":1,"value":1},{"children":[{"detail":0,"format":1,"mode":"normal","style":"","text":"新
+          URL","type":"text","version":1},{"detail":0,"format":0,"mode":"normal","style":"","text":": ","type":"text","version":1},{"detail":0,"format":16,"mode":"normal","style":"","text":"http://login_app:5050/api/v1/sql-query","type":"text","version":1}],"direction":null,"format":"start","indent":0,"type":"listitem","version":1,"textFormat":1,"value":2}],"direction":null,"format":"","indent":0,"type":"list","version":1,"textFormat":1,"listType":"bullet","start":1,"tag":"ul"}],"direction":null,"format":"","indent":0,"type":"root","version":1,"textFormat":1}}'
+        theme: blue
+        title: ''
+        type: ''
+        width: 482
+      height: 268
+      id: '1774401115004'
+      position:
+        x: 189.7320896536782
+        y: 422.5680677372834
+      positionAbsolute:
+        x: 189.7320896536782
+        y: 422.5680677372834
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom-note
+      width: 482
+    viewport:
+      x: -508.3622279271241
+      y: 275.3316920898955
+      zoom: 0.7071067811865472
+  rag_pipeline_variables: []

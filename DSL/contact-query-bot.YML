@@ -1,0 +1,323 @@
+app:
+  description: 聯絡人查詢機器人，可依帳號 (UserID)、微信帳號 (WeChat) 或姓名等關鍵字查詢聯絡資訊。 V0.1
+  icon: "\U0001F4CB"
+  icon_background: '#EFF1F5'
+  mode: advanced-chat
+  name: 聯絡人查詢機器人
+kind: app
+version: 0.6.0
+
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+      image:
+        enabled: false
+      number_limits: 1
+    opening_statement: "您好！我是聯絡人查詢機器人 \U0001F4CB\n\n您可以這樣問我：\n- **查帳號**：「A123 的連絡資訊是什麼？」\n- **查 WeChat**：「wechat_a123 是誰？」\n- **模糊搜尋**：「幫我找姓名含 UserB 的聯絡人」"
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+      - A123 的連絡資訊是什麼？
+      - wechat_b123 是哪個帳號？
+      - 幫我找 B123 的電話與 Email
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: llm
+        id: edge-start-to-extract
+        source: start
+        sourceHandle: source
+        target: llm_extract
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: http-request
+        id: edge-extract-to-http
+        source: llm_extract
+        sourceHandle: source
+        target: http_query
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: if-else
+        id: edge-http-to-ifelse
+        source: http_query
+        sourceHandle: source
+        target: check_result
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: llm
+        id: edge-ifelse-true-llm
+        source: check_result
+        sourceHandle: 'true'
+        target: llm_answer
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: answer
+        id: edge-ifelse-false-notfound
+        source: check_result
+        sourceHandle: 'false'
+        target: answer_not_found
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: llm
+          targetType: answer
+        id: edge-llm-to-output
+        source: llm_answer
+        sourceHandle: source
+        target: answer_output
+        targetHandle: target
+        type: custom
+    nodes:
+      - data:
+          desc: 使用者輸入問題
+          selected: false
+          title: 開始
+          type: start
+          variables: []
+        height: 54
+        id: start
+        position:
+          x: 30
+          y: 240
+        positionAbsolute:
+          x: 30
+          y: 240
+        type: custom
+        width: 244
+
+      - data:
+          context:
+            enabled: false
+            variable_selector: []
+          desc: 分析使用者問題，萃取搜尋類型與關鍵字，輸出 API 查詢參數
+          model:
+            completion_params:
+              temperature: 0.1
+            mode: chat
+            name: gemini-2.0-flash
+            provider: langgenius/google/google
+          prompt_template:
+            - id: sys-extract-01
+              role: system
+              text: |
+                你是一個聯絡人查詢助手，負責將使用者問題解析成 API 查詢參數字串。
+
+                請根據使用者問題，輸出以下其中一種格式（純文字，不加任何說明）：
+
+                - 若是帳號查詢 (如 A123, B123)：輸出 userid=A123
+                - 若是 WeChat 查詢 (如 wechat_xxx)：輸出 wechat=wechat_a123
+                - 其他情況：輸出 q=關鍵字
+
+                範例：
+                - 「A123 的聯絡方式」 → userid=A123
+                - 「wechat_a123 是誰」 → wechat=wechat_a123
+                - 「幫我找 UserB」 → q=UserB
+                - 「0912345678 是誰的電話」 → q=0912345678
+
+                只輸出參數字串，不含其他文字。
+            - id: usr-extract-01
+              role: user
+              text: '{{#sys.query#}}'
+          selected: false
+          title: 意圖萃取 (輸出 API 參數)
+          type: llm
+          variables: []
+          vision:
+            enabled: false
+        height: 98
+        id: llm_extract
+        position:
+          x: 320
+          y: 195
+        positionAbsolute:
+          x: 320
+          y: 195
+        type: custom
+        width: 244
+
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data: ''
+            type: none
+          desc: 呼叫 login-app API 查詢使用者聯絡資訊
+          headers: ''
+          method: get
+          params: '{{#llm_extract.text#}}'
+          timeout:
+            connect: 10
+            max_execution_time: 30
+            read: 20
+          retry_config:
+            max_retries: 1
+            retry_enabled: true
+            retry_on:
+              - 429
+              - 500
+          selected: false
+          title: 查詢使用者資料庫
+          type: http-request
+          url: 'http://login-app:5050/api/v1/user-query'
+          variables: []
+        height: 90
+        id: http_query
+        position:
+          x: 620
+          y: 195
+        positionAbsolute:
+          x: 620
+          y: 195
+        type: custom
+        width: 244
+
+      - data:
+          cases:
+            - case_id: 'true'
+              conditions:
+                - comparison_operator: '>'
+                  varType: number
+                  value: '0'
+                  variable_selector:
+                    - http_query
+                    - status_code
+              logical_operator: and
+          desc: 判斷 HTTP 請求是否成功 (status_code > 0 表有回應)
+          selected: false
+          title: 是否查詢成功？
+          type: if-else
+        height: 102
+        id: check_result
+        position:
+          x: 920
+          y: 195
+        positionAbsolute:
+          x: 920
+          y: 195
+        type: custom
+        width: 244
+
+      - data:
+          context:
+            enabled: false
+            variable_selector: []
+          desc: 將 JSON 資料整理為繁體中文自然語言回答
+          model:
+            completion_params:
+              temperature: 0.3
+            mode: chat
+            name: gemini-2.0-flash
+            provider: langgenius/google/google
+          prompt_template:
+            - id: sys-answer-01
+              role: system
+              text: |
+                你是一個友善的聯絡人查詢助手。
+                請根據以下 JSON 資料，用繁體中文以清晰易讀的格式回答使用者問題。
+
+                格式要求：
+                - count 為 0 時，回覆「查無此人，請確認輸入是否正確」
+                - count > 0 時，逐一列出每個人的資訊：
+                  - 帳號 (userid) 與姓名 (username)
+                  - 📞 電話：phone（若有分機 ext，顯示為 phone #ext）
+                  - ✉️ Email
+                  - 💬 WeChat：wechat
+                  - 📝 備註：remark
+                  - 若 is_active = 0，請加上「⚠️ 此帳號已停用」
+                - 空白欄位不顯示
+            - id: usr-answer-01
+              role: user
+              text: |
+                使用者問題：{{#sys.query#}}
+
+                API 回傳結果：
+                {{#http_query.body#}}
+          selected: false
+          title: 生成回答
+          type: llm
+          variables: []
+          vision:
+            enabled: false
+        height: 98
+        id: llm_answer
+        position:
+          x: 1220
+          y: 120
+        positionAbsolute:
+          x: 1220
+          y: 120
+        type: custom
+        width: 244
+
+      - data:
+          answer: '{{#llm_answer.text#}}'
+          desc: 輸出自然語言查詢結果
+          selected: false
+          title: 回答
+          type: answer
+        height: 90
+        id: answer_output
+        position:
+          x: 1520
+          y: 120
+        positionAbsolute:
+          x: 1520
+          y: 120
+        type: custom
+        width: 244
+
+      - data:
+          answer: |
+            抱歉，查詢過程發生問題，無法取得資料。😕
+
+            請確認：
+            - 後端服務是否正常運作
+            - 輸入的帳號或 WeChat 是否正確
+          desc: API 請求失敗時的回覆
+          selected: false
+          title: 查詢失敗
+          type: answer
+        height: 90
+        id: answer_not_found
+        position:
+          x: 1220
+          y: 320
+        positionAbsolute:
+          x: 1220
+          y: 320
+        type: custom
+        width: 244
+
+  viewport:
+    x: 0
+    y: 0
+    zoom: 0.8

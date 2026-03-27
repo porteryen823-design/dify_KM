@@ -17,6 +17,7 @@
                     <tr>
                         <th class="ps-4">帳號 (UserID)</th>
                         <th>顯示名稱</th>
+                        <th>聯絡資訊</th>
                         <th>備註</th>
                         <th>管理員</th>
                         <th>狀態</th>
@@ -29,6 +30,13 @@
                     <tr class="{{ 'table-secondary text-muted' if not user.is_active }}">
                         <td class="ps-4 fw-semibold">{{ user.userid }}</td>
                         <td>{{ user.username }}</td>
+                        <td>
+                            <div class="small">
+                                {% if user.phone %}<i class="bi bi-telephone"></i> {{ user.phone }}{% if user.ext %} #{{ user.ext }}{% endif %}<br>{% endif %}
+                                {% if user.email %}<i class="bi bi-envelope"></i> {{ user.email }}<br>{% endif %}
+                                {% if user.wechat %}<i class="bi bi-chat-text"></i> {{ user.wechat }}{% endif %}
+                            </div>
+                        </td>
                         <td><span class="text-muted small">{{ user.remark }}</span></td>
                         <td>
                             {% if user.is_admin %}
@@ -52,6 +60,10 @@
                                 data-userid="{{ user.userid }}"
                                 data-username="{{ user.username }}"
                                 data-remark="{{ user.remark }}"
+                                data-phone="{{ user.phone }}"
+                                data-ext="{{ user.ext }}"
+                                data-email="{{ user.email }}"
+                                data-wechat="{{ user.wechat }}"
                                 data-is_admin="{{ '1' if user.is_admin else '0' }}"
                                 data-is_active="{{ '1' if user.is_active else '0' }}"
                                 title="編輯">
@@ -118,6 +130,24 @@
                   <label class="form-label text-muted small fw-semibold">備註</label>
                   <input type="text" name="remark" class="form-control">
               </div>
+              <div class="row">
+                  <div class="col-md-8 mb-3">
+                      <label class="form-label text-muted small fw-semibold">電話</label>
+                      <input type="text" name="phone" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                      <label class="form-label text-muted small fw-semibold">分機</label>
+                      <input type="text" name="ext" class="form-control">
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-semibold">Email</label>
+                  <input type="email" name="email" class="form-control">
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-semibold">WeChat 帳號</label>
+                  <input type="text" name="wechat" class="form-control">
+              </div>
               <div class="form-check form-switch mt-4">
                   <input class="form-check-input" type="checkbox" name="is_admin" id="addIsAdmin">
                   <label class="form-check-label fw-semibold" for="addIsAdmin">設為管理員</label>
@@ -151,6 +181,24 @@
               <div class="mb-3">
                   <label class="form-label text-muted small fw-semibold">備註</label>
                   <input type="text" name="remark" id="editRemark" class="form-control">
+              </div>
+              <div class="row">
+                  <div class="col-md-8 mb-3">
+                      <label class="form-label text-muted small fw-semibold">電話</label>
+                      <input type="text" name="phone" id="editPhone" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                      <label class="form-label text-muted small fw-semibold">分機</label>
+                      <input type="text" name="ext" id="editExt" class="form-control">
+                  </div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-semibold">Email</label>
+                  <input type="email" name="email" id="editEmail" class="form-control">
+              </div>
+              <div class="mb-3">
+                  <label class="form-label text-muted small fw-semibold">WeChat 帳號</label>
+                  <input type="text" name="wechat" id="editWechat" class="form-control">
               </div>
               <div class="form-check form-switch mt-3">
                   <input class="form-check-input" type="checkbox" name="is_admin" id="editIsAdmin">
@@ -233,7 +281,11 @@ document.getElementById('editModal').addEventListener('show.bs.modal', function(
     document.getElementById('editUserid').value      = btn.dataset.userid;
     document.getElementById('editUseridLabel').innerText = btn.dataset.userid;
     document.getElementById('editUsername').value    = btn.dataset.username;
-    document.getElementById('editRemark').value      = btn.dataset.remark;
+    document.getElementById('editRemark').value      = btn.dataset.remark || '';
+    document.getElementById('editPhone').value       = btn.dataset.phone || '';
+    document.getElementById('editExt').value         = btn.dataset.ext || '';
+    document.getElementById('editEmail').value       = btn.dataset.email || '';
+    document.getElementById('editWechat').value      = btn.dataset.wechat || '';
     document.getElementById('editIsAdmin').checked   = btn.dataset.is_admin === '1';
     document.getElementById('editIsActive').checked  = btn.dataset.is_active === '1';
 });

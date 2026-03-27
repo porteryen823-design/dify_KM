@@ -1,0 +1,144 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: Text2SQL
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: junjiem/db_query:0.0.11@2eae0951f13c4e8daa099310d706c9502c349236bca81fcc996f2aea9524c97c
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: '您好！我是您的 **Northwind 2.0 數據分析助手**。'
+    suggested_questions:
+    - 請列出目前庫存低於 100 的所有產品清單。
+    - 哪位員工所處理的訂單筆數最多？
+    - 目前在「倫敦 (London)」城市總共有多少位客戶？
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: llm
+      id: edge_1
+      source: '1774511068830'
+      target: llm
+    - data:
+        sourceType: llm
+        targetType: code
+      id: edge_2
+      source: llm
+      target: '1774512295902'
+    - data:
+        sourceType: code
+        targetType: tool
+      id: edge_3
+      source: '1774512295902'
+      target: '1774516453329'
+    - data:
+        sourceType: tool
+        targetType: answer
+      id: edge_4
+      source: '1774516453329'
+      target: answer
+    nodes:
+    - data:
+        title: 開始
+        type: start
+      id: '1774511068830'
+      position:
+        x: 80
+        y: 282
+      type: custom
+    - data:
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - role: system
+          text: "你是 SQL 專家，服務 Northwind 2.0。只輸出純 SQL。不要 Markdown 標籤。"
+        title: LLM
+        type: llm
+      id: llm
+      position:
+        x: 380
+        y: 282
+      type: custom
+    - data:
+        code: "def main(llm_text: str) -> dict:\n    think_end = llm_text.rfind('</think>')\n\
+          \    text = llm_text[think_end + 8:].strip() if think_end != -1 else llm_text.strip()\n\
+          \    if '```' in text:\n        parts = text.split('```')\n        if len(parts)\
+          \ > 1:\n            block = parts[1].strip()\n            if block.lower().startswith('sql'):\n\
+          \                block = block[3:].strip()\n            text = block\n\
+          \    keywords = ['SELECT', 'WITH', 'UPDATE', 'DELETE', 'INSERT', 'SHOW',\
+          \ 'DESCRIBE']\n    text_upper = text.upper()\n    earliest = len(text)\n\
+          \    for kw in keywords:\n        pos = text_upper.find(kw)\n        if\
+          \ pos != -1 and pos < earliest:\n            earliest = pos\n    sql = text[earliest:].strip()\
+          \ if earliest < len(text) else text.strip()\n    return {'result': sql if\
+          \ sql else '/* NO SQL */'}\n"
+        code_language: python3
+        outputs:
+          result:
+            type: string
+        title: 程式碼執行
+        type: code
+        variables:
+        - value_selector:
+          - llm
+          - text
+          variable: llm_text
+      id: '1774512295902'
+      position:
+        x: 682
+        y: 282
+      type: custom
+    - data:
+        provider_id: junjiem/db_query/db_query
+        provider_name: junjiem/db_query/db_query
+        provider_type: builtin
+        title: SQL Query
+        tool_configurations:
+          db_host: db
+          db_name: northwind
+          db_password: gsi5613686#
+          db_port: '3306'
+          db_type: mysql
+          db_username: root
+          output_format: markdown
+          query_sql:
+            type: variable
+            value:
+            - '1774512295902'
+            - result
+        tool_label: SQL Query
+        tool_name: sql_query
+        type: tool
+      id: '1774516453329'
+      position:
+        x: 980
+        y: 282
+      type: custom
+    - data:
+        answer: "查詢結果如下：\n\n{{#1774516453329.text#}}\n\n*提示：若結果為空，請確認資料庫中是否有對應資料。*"
+        title: 直接回覆
+        type: answer
+      id: answer
+      position:
+        x: 1280
+        y: 282
+      type: custom

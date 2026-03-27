@@ -1,0 +1,235 @@
+app:
+  description: '測試用
+
+    demo 調用工具, 多輪查詢 '
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: agent-chat
+  name: 測試用 Agent
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/gemini:0.7.8@6a3c5af18834ba94befb8085f66c0d5f0dac117feffd35488e90392cac99028d
+    version: null
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/duckduckgo:0.0.5@c9b06a2d34fa61eee0bb0977253e5969ab9b84744fbe78f457da623cdd7f8a3e
+    version: null
+kind: app
+model_config:
+  agent_mode:
+    enabled: true
+    max_iteration: 10
+    prompt: null
+    strategy: function_call
+    tools:
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: time
+      provider_name: time
+      provider_type: builtin
+      tool_label: Timestamp to localtime
+      tool_name: timestamp_to_localtime
+      tool_parameters:
+        timestamp: null
+        timezone: Asia/Shanghai
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: time
+      provider_name: time
+      provider_type: builtin
+      tool_label: localtime to timestamp
+      tool_name: localtime_to_timestamp
+      tool_parameters:
+        localtime: null
+        timezone: Asia/Shanghai
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: time
+      provider_name: time
+      provider_type: builtin
+      tool_label: Weekday Calculator
+      tool_name: weekday
+      tool_parameters:
+        day: null
+        month: null
+        year: null
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: time
+      provider_name: time
+      provider_type: builtin
+      tool_label: convert time to equivalent time zone
+      tool_name: timezone_conversion
+      tool_parameters:
+        current_time: null
+        current_timezone: Asia/Shanghai
+        target_timezone: Asia/Tokyo
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: time
+      provider_name: time
+      provider_type: builtin
+      tool_label: Current Time
+      tool_name: current_time
+      tool_parameters:
+        format: '%Y-%m-%d %H:%M:%S'
+        timezone: UTC
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: langgenius/duckduckgo/duckduckgo
+      provider_name: langgenius/duckduckgo/duckduckgo
+      provider_type: builtin
+      tool_label: DuckDuckGo AI Chat
+      tool_name: ddgo_ai
+      tool_parameters:
+        model: gpt-3.5
+        proxy_server: null
+        query: null
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: langgenius/duckduckgo/duckduckgo
+      provider_name: langgenius/duckduckgo/duckduckgo
+      provider_type: builtin
+      tool_label: DuckDuckGo Image Search
+      tool_name: ddgo_img
+      tool_parameters:
+        max_results: 3
+        proxy_server: null
+        query: null
+        size: null
+        timelimit: null
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: langgenius/duckduckgo/duckduckgo
+      provider_name: langgenius/duckduckgo/duckduckgo
+      provider_type: builtin
+      tool_label: DuckDuckGo Search
+      tool_name: ddgo_search
+      tool_parameters:
+        max_results: 5
+        proxy_server: null
+        query: null
+        require_summary: false
+      type: builtin
+    - enabled: true
+      isDeleted: false
+      notAuthor: false
+      provider_id: langgenius/duckduckgo/duckduckgo
+      provider_name: langgenius/duckduckgo/duckduckgo
+      provider_type: builtin
+      tool_label: DuckDuckGo Translate
+      tool_name: ddgo_translate
+      tool_parameters:
+        proxy_server: null
+        query: null
+        translate_to: en
+      type: builtin
+    - enabled: true
+      notAuthor: false
+      provider_id: webscraper
+      provider_name: webscraper
+      provider_type: builtin
+      tool_label: Web Scraper
+      tool_name: webscraper
+      tool_parameters:
+        generate_summary: 'false'
+        url: null
+        user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
+          like Gecko) Chrome/100.0.1000.0 Safari/537.36
+      type: builtin
+  annotation_reply:
+    enabled: false
+  chat_prompt_config:
+    prompt:
+    - role: system
+      text: ''
+  completion_prompt_config:
+    conversation_histories_role:
+      assistant_prefix: ''
+      user_prefix: ''
+    prompt:
+      text: ''
+  dataset_configs:
+    datasets:
+      datasets: []
+    retrieval_model: multiple
+    top_k: 4
+  dataset_query_variable: ''
+  external_data_tools: []
+  file_upload:
+    allowed_file_extensions:
+    - .JPG
+    - .JPEG
+    - .PNG
+    - .GIF
+    - .WEBP
+    - .SVG
+    - .MP4
+    - .MOV
+    - .MPEG
+    - .WEBM
+    allowed_file_types: []
+    allowed_file_upload_methods:
+    - remote_url
+    - local_file
+    enabled: false
+    image:
+      detail: high
+      enabled: false
+      number_limits: 3
+      transfer_methods:
+      - remote_url
+      - local_file
+    number_limits: 3
+  model:
+    completion_params:
+      stop: []
+    mode: chat
+    name: gemini-3.1-pro-preview
+    provider: langgenius/gemini/google
+  more_like_this:
+    enabled: false
+  opening_statement: ''
+  pre_prompt: "## 重要規則 - 必須嚴格遵守\n\n你有以下工具可以使用，遇到對應情況時你**必須**呼叫工具，\n禁止說「我無法取得」或「建議您自行查詢」：\n\
+    \n### 工具 1：CurrentTime\n觸發條件：用戶問時間、日期、幾點\n→ 立即呼叫 CurrentTime，不可自行回答\n\n### 工具\
+    \ 2：DuckDuckGo Search  \n觸發條件：\n- 任何涉及即時、最新、近期的問題\n- 股價、新聞、最新發布、版本資訊\n- 2024年後可能發生的事件\n\
+    \n### 工具 3：webscraper  \n觸發條件：\n- 當工具 2 有問題時\n- 任何涉及即時、最新、近期的問題\n- 股價、新聞、最新發布、版本資訊\n\
+    - 2024年後可能發生的事件\n**嚴禁行為**：\n- ❌ 說「我的訓練資料有限」後不搜尋就放棄\n- ❌ 叫用戶自己去查\n- ✅ 應該：呼叫 DuckDuckGo\
+    \ 搜尋後，根據結果回答"
+  prompt_type: simple
+  retriever_resource:
+    enabled: true
+  sensitive_word_avoidance:
+    configs: []
+    enabled: false
+    type: ''
+  speech_to_text:
+    enabled: false
+  suggested_questions: []
+  suggested_questions_after_answer:
+    enabled: false
+  text_to_speech:
+    enabled: false
+    language: ''
+    voice: ''
+  user_input_form: []
+version: 0.6.0

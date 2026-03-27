@@ -1,0 +1,92 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: Text2SQL_Fixed
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  features:
+    opening_statement: "您好！我是您的 **Northwind 2.0 數據分析助手**。"
+    suggested_questions:
+    - 請列出目前庫存低於 100 的所有產品清單。
+    - 哪位員工所處理的訂單筆數最多？
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: llm
+      id: edge_1
+      source: start_node
+      target: llm_node
+    - data:
+        sourceType: llm
+        targetType: tool
+      id: edge_2
+      source: llm_node
+      target: tool_node
+    - data:
+        sourceType: tool
+        targetType: answer
+      id: edge_3
+      source: tool_node
+      target: answer_node
+    nodes:
+    - data:
+        title: 開始
+        type: start
+      id: start_node
+      position:
+        x: 100
+        y: 200
+      type: custom
+    - data:
+        model:
+          completion_params:
+            temperature: 0.1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - role: system
+          text: "你是 SQL 專家，服務 Northwind 2.0。只輸出純 SQL。不要加 Markdown 標籤。"
+        title: SQL 產生
+        type: llm
+      id: llm_node
+      position:
+        x: 400
+        y: 200
+      type: custom
+    - data:
+        provider_id: junjiem/db_query/db_query
+        provider_name: junjiem/db_query/db_query
+        provider_type: builtin
+        title: 資料庫查詢
+        tool_configurations:
+          db_host: db
+          db_name: northwind
+          db_password: gsi5613686#
+          db_port: '3306'
+          db_type: mysql
+          db_username: root
+          output_format: markdown
+          query_sql: "{{#llm_node.text#}}"
+        tool_label: SQL Query
+        tool_name: sql_query
+        type: tool
+      id: tool_node
+      position:
+        x: 700
+        y: 200
+      type: custom
+    - data:
+        answer: "根據您的查詢，結果如下：\n\n{{#tool_node.text#}}\n\n*注意：若結果顯示為空或為 0，代表目前條件查無相關資料。*"
+        title: 最終回覆
+        type: answer
+      id: answer_node
+      position:
+        x: 1000
+        y: 200
+      type: custom

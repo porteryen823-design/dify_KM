@@ -15,8 +15,8 @@ app.secret_key = os.environ.get('SECRET_KEY', 'default-dev-secret-key-1234')
 
 PORTAL_PREFIX = '/portal'
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
-USERS_FILE = os.path.join(DATA_DIR, 'users.json')   # legacy, used only for migration
-USERS_DB   = os.path.join(DATA_DIR, 'users.db')     # SQLite DB
+USERS_FILE = os.path.join(DATA_DIR, 'users.json')
+USERS_DB = os.path.join(DATA_DIR, 'users.db')
 APPS_FILE = os.path.join(DATA_DIR, 'apps.json')
 TOKEN_LOG_FILE = os.path.join(DATA_DIR, 'token_log.json')
 
@@ -31,6 +31,7 @@ def get_hash(password: str) -> str:
 # ---- SQLite user DB helpers ----
 
 def get_db_conn():
+    """取得 SQLite 連線並設定為字典模式"""
     conn = sqlite3.connect(USERS_DB)
     conn.row_factory = sqlite3.Row
     return conn
@@ -47,6 +48,10 @@ def init_users_db():
             username    TEXT NOT NULL,
             pwd         TEXT NOT NULL,
             remark      TEXT DEFAULT '',
+            phone       TEXT DEFAULT '',
+            ext         TEXT DEFAULT '',
+            email       TEXT DEFAULT '',
+            wechat      TEXT DEFAULT '',
             is_admin    INTEGER DEFAULT 0,
             is_active   INTEGER DEFAULT 1,
             created_at  TEXT DEFAULT ''
@@ -87,9 +92,15 @@ def init_users_db():
             UNIQUE(userid, app_id)
         )
     ''')
-    conn.commit()
-
     # --- 自動升級舊版資料庫欄位 (Migration) ---
+    contact_fields = ["phone", "ext", "email", "wechat"]
+    for field in contact_fields:
+        try:
+            cur.execute(f'ALTER TABLE users ADD COLUMN {field} TEXT DEFAULT ""')
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass # 欄位已存在
+
     try:
         cur.execute('ALTER TABLE apps ADD COLUMN api_key TEXT DEFAULT ""')
         conn.commit()
@@ -122,12 +133,13 @@ def init_users_db():
         # 確保有預設的測試帳號 A123, B123, C123
         hashed = get_hash('1234')
         test_users = [
-            ('A123', 'UserA (全權限)', hashed, '測試用，全 App', 0, 1, now),
-            ('B123', 'UserB (半權限)', hashed, '測試用，前 4 個 App', 0, 1, now),
-            ('C123', 'UserC (單權限)', hashed, '測試用，單一 App', 0, 1, now)
+            ('A123', 'UserA (全權限)', hashed, '測試用，全 App', '0912345678', '101', 'a123@example.com', 'wechat_a123', 0, 1, now),
+            ('B123', 'UserB (半權限)', hashed, '測試用，前 4 個 App', '0922345678', '102', 'b123@example.com', 'wechat_b123', 0, 1, now),
+            ('C123', 'UserC (單權限)', hashed, '測試用，單一 App', '0932345678', '103', 'c123@example.com', 'wechat_c123', 0, 1, now),
+            ('admin', 'Administrator', hashed, '系統管理員', '', '', 'admin@example.com', '', 1, 1, now)
         ]
         for u in test_users:
-            cur.execute('INSERT OR IGNORE INTO users (userid, username, pwd, remark, is_admin, is_active, created_at) VALUES (?,?,?,?,?,?,?)', u)
+            cur.execute('INSERT OR IGNORE INTO users (userid, username, pwd, remark, phone, ext, email, wechat, is_admin, is_active, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)', u)
         conn.commit()
 
     # Migration & Seed: Apps
@@ -216,14 +228,14 @@ def db_get_user(userid: str):
     conn.close()
     return dict(row) if row else None
 
-def db_add_user(userid, username, pwd_plain, remark, is_admin):
+def db_add_user(userid, username, pwd_plain, remark, is_admin, phone='', ext='', email='', wechat=''):
     hashed = get_hash(pwd_plain)
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     conn = get_db_conn()
     try:
         conn.execute(
-            'INSERT INTO users (userid, username, pwd, remark, is_admin, is_active, created_at) VALUES (?,?,?,?,?,1,?)',
-            (userid, username, hashed, remark, 1 if is_admin else 0, now)
+            'INSERT INTO users (userid, username, pwd, remark, phone, ext, email, wechat, is_admin, is_active, created_at) VALUES (?,?,?,?,?,?,?,?,?,1,?)',
+            (userid, username, hashed, remark, phone, ext, email, wechat, 1 if is_admin else 0, now)
         )
         conn.commit()
         return True, None
@@ -238,11 +250,11 @@ def db_delete_user(userid: str):
     conn.commit()
     conn.close()
 
-def db_update_user(userid, username, remark, is_admin, is_active):
+def db_update_user(userid, username, remark, is_admin, is_active, phone='', ext='', email='', wechat=''):
     conn = get_db_conn()
     conn.execute(
-        'UPDATE users SET username=?, remark=?, is_admin=?, is_active=? WHERE userid=?',
-        (username, remark, 1 if is_admin else 0, 1 if is_active else 0, userid)
+        'UPDATE users SET username=?, remark=?, is_admin=?, is_active=?, phone=?, ext=?, email=?, wechat=? WHERE userid=?',
+        (username, remark, 1 if is_admin else 0, 1 if is_active else 0, phone, ext, email, wechat, userid)
     )
     conn.commit()
     conn.close()
@@ -801,8 +813,12 @@ def admin_users():
             username = request.form.get('username', '').strip()
             pwd      = request.form.get('pwd', '')
             remark   = request.form.get('remark', '')
+            phone    = request.form.get('phone', '')
+            ext      = request.form.get('ext', '')
+            email    = request.form.get('email', '')
+            wechat   = request.form.get('wechat', '')
             is_admin = request.form.get('is_admin') == 'on'
-            ok, err = db_add_user(userid, username, pwd, remark, is_admin)
+            ok, err = db_add_user(userid, username, pwd, remark, is_admin, phone, ext, email, wechat)
             flash('新增使用者成功' if ok else err, 'success' if ok else 'danger')
 
         elif action == 'delete':
@@ -817,9 +833,13 @@ def admin_users():
             uid      = request.form.get('userid')
             username = request.form.get('username', '').strip()
             remark   = request.form.get('remark', '')
+            phone    = request.form.get('phone', '')
+            ext      = request.form.get('ext', '')
+            email    = request.form.get('email', '')
+            wechat   = request.form.get('wechat', '')
             is_admin = request.form.get('is_admin') == 'on'
             is_active = request.form.get('is_active') == 'on'
-            db_update_user(uid, username, remark, is_admin, is_active)
+            db_update_user(uid, username, remark, is_admin, is_active, phone, ext, email, wechat)
             flash('使用者資料已更新', 'success')
 
         elif action == 'reset_pwd':
@@ -841,10 +861,11 @@ def admin_users():
 def export_users():
     users = db_get_all_users()
     si = StringIO()
-    cw = csv.DictWriter(si, fieldnames=['userid', 'username', 'remark', 'is_admin', 'is_active', 'created_at'])
+    fieldnames = ['userid', 'username', 'remark', 'phone', 'ext', 'email', 'wechat', 'is_admin', 'is_active', 'created_at']
+    cw = csv.DictWriter(si, fieldnames=fieldnames)
     cw.writeheader()
     for u in users:
-        cw.writerow({k: u.get(k, '') for k in ['userid', 'username', 'remark', 'is_admin', 'is_active', 'created_at']})
+        cw.writerow({k: u.get(k, '') for k in fieldnames})
     output = si.getvalue().encode('utf-8-sig')
     return Response(output, mimetype='text/csv', headers={'Content-disposition': 'attachment; filename=users.csv'})
 
@@ -868,11 +889,15 @@ def import_users():
             is_active = str(row.get('is_active', '1')).lower() not in ['false', '0', 'no']
             if existing:
                 db_update_user(uid, row.get('username', existing['username']).strip(),
-                               row.get('remark', existing['remark']), is_admin, is_active)
+                               row.get('remark', existing['remark']), is_admin, is_active,
+                               row.get('phone', existing['phone']), row.get('ext', existing['ext']),
+                               row.get('email', existing['email']), row.get('wechat', existing['wechat']))
             else:
                 pwd_raw = row.get('pwd', 'changeme')
                 db_add_user(uid, row.get('username', uid).strip(), pwd_raw,
-                            row.get('remark', ''), is_admin)
+                            row.get('remark', ''), is_admin,
+                            row.get('phone', ''), row.get('ext', ''),
+                            row.get('email', ''), row.get('wechat', ''))
             count += 1
         flash(f'成功匯入/更新 {count} 筆使用者資料', 'success')
     except Exception as e:
@@ -955,6 +980,91 @@ def import_apps():
     except Exception as e:
         flash(f"匯入失敗: {e}", "danger")
     return redirect(PORTAL_PREFIX + '/admin/apps')
+
+# ======================== EXTERNAL API FOR DIFY ========================
+@app.route('/api/v1/user-query', methods=['GET'])
+def api_user_query():
+    """
+    提供給 Dify 工具呼叫的聯絡人查詢 API
+    - q: 模糊搜尋
+    - userid: 精確搜尋帳號
+    - wechat: 精確搜尋 WeChat
+    """
+    # 簡單金鑰驗證 (如有環境變數 SYSTEM_API_KEY 才啟用)
+    api_key = os.environ.get('SYSTEM_API_KEY')
+    if api_key:
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header != f"Bearer {api_key}" and request.args.get('api_key') != api_key:
+            return jsonify({"error": "Unauthorized"}), 401
+            
+    query = request.args.get('q', '').strip()
+    userid = request.args.get('userid', '').strip()
+    wechat = request.args.get('wechat', '').strip()
+    
+    conn = get_db_conn()
+    data = []
+    
+    try:
+        if userid:
+            # userID 精確搜尋 (忽略大小寫)
+            row = conn.execute('SELECT userid, username, phone, ext, email, wechat, remark, is_active FROM users WHERE userid LIKE ?', (userid,)).fetchone()
+            if row: data.append(dict(row))
+        elif wechat:
+            # wechat 精確搜尋
+            rows = conn.execute('SELECT userid, username, phone, ext, email, wechat, remark, is_active FROM users WHERE wechat LIKE ?', (wechat,)).fetchall()
+            for r in rows: data.append(dict(r))
+        elif query:
+            # 模糊搜尋
+            like_q = f'%{query}%'
+            rows = conn.execute('''
+                SELECT userid, username, phone, ext, email, wechat, remark, is_active 
+                FROM users 
+                WHERE userid LIKE ? OR username LIKE ? OR phone LIKE ? OR ext LIKE ? OR wechat LIKE ? OR email LIKE ?
+            ''', (like_q, like_q, like_q, like_q, like_q, like_q)).fetchall()
+            for r in rows: data.append(dict(r))
+    finally:
+        conn.close()
+        
+    return jsonify({
+        "status": "success",
+        "count": len(data),
+        "data": data
+    })
+
+@app.route('/api/v1/sql-query', methods=['POST'])
+def api_sql_query():
+    """
+    提供給 Dify LLM 執行 SQL 查詢（限 SELECT 語句，僅限 users 資料表）
+    Body: { "sql": "SELECT ... FROM users WHERE ..." }
+    """
+    # 簡單金鑰驗證 (如有環境變數 SYSTEM_API_KEY 才啟用)
+    api_key = os.environ.get('SYSTEM_API_KEY')
+    if api_key:
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header != f"Bearer {api_key}":
+            return jsonify({"error": "Unauthorized"}), 401
+            
+    body = request.get_json(silent=True) or {}
+    sql = body.get('sql', '').strip()
+    
+    # 安全白名單驗證
+    sql_upper = sql.upper()
+    if not sql_upper.startswith('SELECT'):
+        return jsonify({"error": "Only SELECT statements are allowed"}), 400
+    for forbidden in ['DROP', 'DELETE', 'UPDATE', 'INSERT', 'ALTER', 'CREATE', 'ATTACH']:
+        if forbidden in sql_upper:
+            return jsonify({"error": f"Forbidden keyword: {forbidden}"}), 400
+    
+    conn = get_db_conn()
+    data = []
+    try:
+        rows = conn.execute(sql).fetchall()
+        data = [dict(r) for r in rows]
+        return jsonify({"status": "success", "count": len(data), "data": data})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     ensure_data_dir()

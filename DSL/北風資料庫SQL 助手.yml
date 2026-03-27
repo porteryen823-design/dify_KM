@@ -1,0 +1,153 @@
+app:
+  description: '專業的 Northwind 2.0 SQL 助手。已將模型切換為 gpt-oss:20b (Ollama)，並包含全量 Schema 欄位。 V0.6'
+  icon: 📊
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 北風資料庫SQL 助手
+  use_icon_as_answer_icon: true
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: "你好！我已經切換到你的在地模型 `gpt-oss:20b` 並補齊了全量 Schema。\n現在 SQL 生成會更加精確且符合你的在地運作環境。\n請告訴我你想查詢什麼？"
+    retriever_resource:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 查詢庫存量低於 10 的產品代碼、名稱、定價與類別名稱
+    - 統計 2003 年各員工負責的總訂單金額與筆數
+    - 列出各公司客戶的詳細聯絡資訊與所在城市
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        sourceType: start
+        targetType: llm
+      id: edge-start-to-llm
+      source: start
+      sourceHandle: source
+      target: llm_sql_gen
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        sourceType: llm
+        targetType: answer
+      id: edge-llm-to-answer
+      source: llm_sql_gen
+      sourceHandle: source
+      target: answer_output
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 使用者輸入
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 54
+      id: start
+      position:
+        x: 80
+        y: 200
+      positionAbsolute:
+        x: 80
+        y: 200
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - sys
+          - query
+        desc: 根據 Northwind 2.0 (全量 Schema) 生成 SQL
+        model:
+          completion_params:
+            temperature: 0.1
+            top_p: 1
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: sys-prompt
+          role: system
+          text: |
+            # Role
+            你是一位專家級 SQL 工程師。你的任務是協助生成「北風資料庫 (Northwind Traders v2.0)」的精確 SQL 語句。
+
+            # Northwind 2.0 FULL Schema (CRITICAL CONTEXT)
+            本資料庫採用 `snake_case` 命名法，請嚴格按照以下綱目欄位生成 SQL：
+
+            ## 1. 核心業務表 (Core Business)
+            - **customers**: id (PK), company, last_name, first_name, email_address, job_title, business_phone, city, country_region
+            - **employees**: id (PK), last_name, first_name, email_address, job_title
+            - **products**: id (PK), product_code, product_name, category, standard_cost, list_price, quantity_per_unit, discontinued
+            - **orders**: id (PK), employee_id (FK), customer_id (FK), order_date, shipped_date, shipper_id, shipping_fee, status_id
+            - **order_details**: id (PK), order_id (FK), product_id (FK), quantity, unit_price, discount, status_id
+
+            ## 2. 庫存與供需 (Inventory / PO)
+            - **inventory_transactions**: id (PK), transaction_type, transaction_created_date, product_id, quantity, customer_order_id, purchase_order_id
+            - **purchase_orders**: id (PK), supplier_id (FK), submitted_date, status_id
+            - **suppliers**: id (PK), company, last_name, first_name, city, country_region
+
+            ## 3. 狀態與輔助表 (Status / Utils)
+            - **orders_status**: id (PK), status_name
+            - **shippers**: id (PK), company, phone
+
+            # Guidelines
+            1. **欄位準確性**：查詢客戶名稱請使用 `company`。查詢產品價格請使用 `list_price`。主鍵統一為 `id`（絕非 `CustomerID`）。
+            2. **命名規範**：嚴格使用 `snake_case` 資料表名稱。
+            3. **Output Format (FOR COPYING)**：
+               - 第一行直接開始 Markdown SQL 程式碼區塊（禁止任何廢話/標題）。
+               - 區塊結束後換行標記「### 查詢邏輯說明」。
+            4. **繁體中文**：所有回覆與邏輯說明請使用繁體中文。
+
+            **整理人：** Antigravity AI & Porter
+        - id: usr-prompt
+          role: user
+          text: "{{#sys.query#}}"
+        selected: false
+        title: SQL 生成 (LLM)
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 98
+      id: llm_sql_gen
+      position:
+        x: 400
+        y: 200
+      positionAbsolute:
+        x: 400
+        y: 200
+      type: custom
+      width: 244
+    - data:
+        answer: "{{#llm_sql_gen.text#}}"
+        desc: 輸出 SQL 與說明
+        selected: false
+        title: 回答
+        type: answer
+      height: 103
+      id: answer_output
+      position:
+        x: 720
+        y: 200
+      positionAbsolute:
+        x: 720
+        y: 200
+      type: custom
+      width: 244
+  viewport:
+    x: 0
+    y: 0
+    zoom: 1.0

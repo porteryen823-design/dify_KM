@@ -182,4 +182,7 @@ if sys.platform == 'win32':
 
 ---
 
+## 十七、LLM 模型規範
+* **預設模型 (Default Model)**：除非專案另有明確指明（如需使用 GPT-4o 進行複雜分析），否則所有 Dify 應用、Agent 或推理腳本的預設 LLM 一律使用 **`gpt-oss:20b`** (Ollama)。
+
 **整理人：** Antigravity AI & Porter
