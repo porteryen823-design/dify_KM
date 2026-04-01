@@ -38,3 +38,5 @@ backups/*
 !backups/README.md
 scripts/*.log
 
+volumes_backup.tar.gz
+backups/

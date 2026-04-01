@@ -1,0 +1,216 @@
+app:
+  description: 系統狀態檢查機器人（手動觸發）。呼叫 Ollama /api/tags 檢查連線狀態，若失敗或逾時（未回應 200），則透過 Discord Bot API 發送告警訊息。
+  icon: "\U0001F916"
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: Ollama Health Check (Discord Alert)
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+    - id: env_discord_token
+      name: DISCORD_BOT_TOKEN
+      type: secret
+      value: YOUR_DISCORD_TOKEN
+    - id: env_discord_channel
+      name: DISCORD_CHANNEL_ID
+      type: string
+      value: '1439192827077857393'
+  features:
+    file_upload:
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+          - local_file
+          - remote_url
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: http-request
+        id: start-to-http
+        source: start
+        sourceHandle: source
+        target: http_ollama_status
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: http-request
+          targetType: if-else
+        id: http-to-if
+        source: http_ollama_status
+        sourceHandle: source
+        target: check_status
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: http-request
+        id: check-to-discord
+        source: check_status
+        sourceHandle: 'false'
+        target: http_discord_alert
+        targetHandle: target
+        type: custom
+      - data:
+          isInIteration: false
+          sourceType: if-else
+          targetType: end
+        id: check-to-end
+        source: check_status
+        sourceHandle: 'true'
+        target: end_success
+        targetHandle: target
+        type: custom
+    nodes:
+      - data:
+          desc: 手動外部觸發
+          selected: false
+          title: 開始
+          type: start
+          variables: []
+        height: 54
+        id: start
+        position:
+          x: 80
+          y: 282
+        positionAbsolute:
+          x: 80
+          y: 282
+        type: custom
+        width: 244
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data: ''
+            type: none
+          desc: 'Call Ollama API check'
+          headers: ''
+          method: get
+          params: ''
+          timeout:
+            connect: 5
+            max_execution_time: 15
+            read: 10
+          retry_config:
+            max_retries: 0
+            retry_enabled: false
+          selected: false
+          title: Check Ollama Tags
+          type: http-request
+          url: http://gyro1.ddns.net:11434/api/tags
+          variables: []
+        height: 90
+        id: http_ollama_status
+        position:
+          x: 380
+          y: 282
+        positionAbsolute:
+          x: 380
+          y: 282
+        type: custom
+        width: 244
+      - data:
+          cases:
+            - case_id: 'true'
+              conditions:
+                - comparison_operator: contains
+                  value: '200'
+                  variable_selector:
+                    - http_ollama_status
+                    - status_code
+              logical_operator: and
+          desc: 'Check if HTTP Status is 200'
+          selected: false
+          title: Success Check
+          type: if-else
+        height: 102
+        id: check_status
+        position:
+          x: 680
+          y: 282
+        positionAbsolute:
+          x: 680
+          y: 282
+        type: custom
+        width: 244
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data: "{\n  \"content\": \"\u26A0\uFE0F **Ollama Health Alert** \\n> \u4F86\u6E90: Dify Health Checker@AWS\\n> \u72C0\u614B: \u9060\u7AEF Ollama API \u6AA2\u67E5\u5931\u6557 (Status: {{#http_ollama_status.status_code#}})\\n> \u76EE\u6A19: `http://gyro1.ddns.net:11434`\\n> \u9324\u8AA4\u5167\u5BB9: {{#http_ollama_status.body#}}\"\n}"
+            type: json
+          desc: 'Alert Discord if fail'
+          headers: "Authorization: Bot {{#env.DISCORD_BOT_TOKEN#}}"
+          method: post
+          params: ''
+          timeout:
+            connect: 10
+            max_execution_time: 30
+            read: 20
+          retry_config:
+            max_retries: 1
+            retry_enabled: true
+          selected: false
+          title: Send Discord Alert
+          type: http-request
+          url: "https://discord.com/api/v10/channels/{{#env.DISCORD_CHANNEL_ID#}}/messages"
+          variables: []
+        height: 90
+        id: http_discord_alert
+        position:
+          x: 980
+          y: 400
+        positionAbsolute:
+          x: 980
+          y: 400
+        type: custom
+        width: 244
+      - data:
+          desc: 檢查完成且連線正常
+          outputs:
+            - value_selector:
+                - http_ollama_status
+                - body
+              variable: result
+          selected: false
+          title: 檢查成功
+          type: end
+        height: 90
+        id: end_success
+        position:
+          x: 980
+          y: 180
+        positionAbsolute:
+          x: 980
+          y: 180
+        type: custom
+        width: 244
+  viewport:
+    x: 0
+    y: 0
+    zoom: 0.8

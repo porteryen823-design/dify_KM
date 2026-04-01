@@ -1,6 +1,10 @@
-# Dify Full Restore Script (Windows PowerShell)
+# Dify Full Restore Script (Windows PowerShell) - LOCAL Environment
 # Logic: Mandatory Safety Backup -> User Confirmation -> Automated Restore
 # Creator: Antigravity AI & Porter
+#
+# [NOTICE] 建議改用新腳本:
+#   本地還原: restore-dify-local.ps1
+#   AWS Gyro 還原: restore-dify-aws-gyro.ps1
 
 param (
     [Parameter(Mandatory=$true)]
@@ -8,9 +12,9 @@ param (
     [switch]$Force           # Skip confirmation
 )
 
-$BackupScript = "C:\VSCode_Proj\Dify\scripts\backup-dify.ps1"
+$BackupScript = "C:\VSCode_Proj\Dify\scripts\backup-dify-local.ps1"
 $DifyDockerRoot = "C:\VSCode_Proj\Dify\dify\docker"
-$LogFile = "C:\VSCode_Proj\Dify\backups\restore_log.txt"
+$LogFile = "C:\VSCode_Proj\Dify\backups\local\restore_log.txt"
 
 function Write-Log {
     param([string]$Message)
@@ -74,7 +78,7 @@ if ($PgZip) {
     Write-Log "    Waiting for PostgreSQL to be ready..."
     $retryCount = 0
     while ($retryCount -lt 12) {
-        $check = docker exec docker-db_postgres-1 pg_isready -U postgres 2>&1
+        $null = docker exec docker-db_postgres-1 pg_isready -U postgres 2>&1
         if ($LASTEXITCODE -eq 0) { break }
         Write-Log "    PostgreSQL not ready, waiting 5s... ($($retryCount+1)/12)"
         Start-Sleep -Seconds 5

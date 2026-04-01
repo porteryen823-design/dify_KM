@@ -1,0 +1,305 @@
+app:
+  description: '桃花源 Knowledge Retrieval (Telegram Enabled)'
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 桃花源Telegram
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: 你好! 歡迎使用 桃花源記問題 小幫手! (Telegram 版)
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 漁人是哪個朝代的人?
+    - 後來有哪幾個人想去桃花源?
+    - 桃花源內景象是?
+    - 桃花源內是那個朝代的人?
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: 1711528914102-1711528915811
+      source: '1711528914102'
+      sourceHandle: source
+      target: '1711528915811'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1711528915811-1711528917469
+      source: '1711528915811'
+      sourceHandle: source
+      target: '1711528917469'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: 1711528917469-1711528919501
+      source: '1711528917469'
+      sourceHandle: source
+      target: '1711528919501'
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: http-request
+      id: llm-to-telegram
+      source: '1711528917469'
+      sourceHandle: source
+      target: telegram_push
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Start
+        type: start
+        variables:
+        - default: 繁體中文
+          label: 輸出語言 (Output Language)
+          max_length: 48
+          options:
+          - 繁體中文
+          - 簡體中文
+          - 英文
+          - 中英對照
+          required: true
+          type: select
+          variable: output_language
+      height: 73
+      id: '1711528914102'
+      position:
+        x: 80
+        y: 2635
+      positionAbsolute:
+        x: 80
+        y: 2635
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - tj6qaybsBZv2YpK8p2Kc6pg4+2zUXEA4XjJOpnW0mX0A6BVDzqZndHMQTY4eBtYb
+        desc: Allows you to query text content related to user questions from the Knowledge
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 2
+          weights:
+            keyword_setting:
+              keyword_weight: 0.2
+            vector_setting:
+              embedding_model_name: qwen3-embedding-4b-q4_k_m:latest
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.8
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1711528914102'
+        - sys.query
+        retrieval_mode: multiple
+        selected: false
+        single_retrieval_config:
+          model:
+            completion_params:
+              frequency_penalty: 0
+              max_tokens: 512
+              presence_penalty: 0
+              temperature: 0
+              top_p: 1
+            mode: chat
+            name: gpt-3.5-turbo
+            provider: openai
+        title: Knowledge Retrieval
+        type: knowledge-retrieval
+      dragging: false
+      height: 150
+      id: '1711528915811'
+      position:
+        x: 360
+        y: 2635
+      positionAbsolute:
+        x: 360
+        y: 2635
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1711528915811'
+          - result
+        desc: Invoking large language models to answer questions or process natural language
+        memory:
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.1
+            top_k: 1
+            top_p: 0.4
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: c8879ca5-2d1b-45bf-9041-1fb59579fef5
+          role: system
+          text: '你是一位專精於《桃花源記》與古典文學的文學導覽助理。
+
+            請將以下 <context></context> XML 標籤內的內容視為你唯一的知識來源。
+
+
+            <context>
+
+            {{#context#}}
+
+            </context>
+
+
+            當你回答使用者時，請遵循以下原則：
+
+            1. 解釋說明：請生動且深入地解釋文章段落、字詞意涵，以及背後的情感與哲理。
+
+            2. 忠於文本：如果不清楚答案或文本未提及，請直接表達不知道，絕對不要編造情節或外加歷史故事。
+
+            3. 隱藏來源：請自然地回答，避免在回答中提及「根據提供的心得」或「上下文顯示」等字眼。
+
+            4. 情境引導：當使用者提問較簡短時，除了字面解釋，可以適度補充文章中的相關情境，幫助使用者更融入桃花源的世界。
+
+            5. 語氣與語言設定：
+               - 請根據使用者選擇的語言 {{#1711528914102.output_language#}} 進行回答。
+               - 若選擇「中英對照」，請先顯示中文內容，隨後緊接顯示英文對應內容。
+               - 格式要求：請使用 HTML 標籤為中英文區分顏色。例如：英文部分請使用 `<font color="#3a86ff">` 藍色字體，中文保持預設顏色。
+               - 保持體貼、專業且文致的導覽語氣。'
+        selected: false
+        title: LLM
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 148
+      id: '1711528917469'
+      position:
+        x: 660
+        y: 2635
+      positionAbsolute:
+        x: 660
+        y: 2635
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#1711528917469.text#}}'
+        desc: ''
+        selected: false
+        title: Answer
+        type: answer
+        variables: []
+      height: 102
+      id: '1711528919501'
+      position:
+        x: 930
+        y: 2550
+      positionAbsolute:
+        x: 930
+        y: 2550
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization: {config: null, type: no-auth}
+        body:
+          data: "{\n  \"chat_id\": \"8226231440\",\n  \"text\": \"\uD83C\uDF38 <b>\u6A11\u82B1\u6E90 \u554F\u7AD4 \u56DE\u8986</b>\\n\\n<b>\u554F\u984C\uFF1A</b> {{#sys.query#}}\\n\\n<b>\u56DE\u7B54\uFF1A</b>\\n{{#1711528917469.text#}}\",\n  \"parse_mode\": \"HTML\"\n}"
+          type: json
+        desc: 推送回答至 Telegram
+        headers: "Content-Type: application/json"
+        method: post
+        params: ''
+        timeout: {connect: 10, max_execution_time: 30, read: 20}
+        retry_config: {max_retries: 1, retry_enabled: true}
+        selected: false
+        title: Telegram 推送
+        type: http-request
+        url: "https://api.telegram.org/botYOUR_TELEGRAM_TOKEN/sendMessage"
+        variables: []
+      height: 90
+      id: telegram_push
+      position: {x: 930, y: 2700}
+      positionAbsolute: {x: 930, y: 2700}
+      type: custom
+      width: 242
+  viewport:
+    x: 0
+    y: 0
+    zoom: 1

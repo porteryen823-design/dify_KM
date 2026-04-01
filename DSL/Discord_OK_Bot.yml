@@ -1,0 +1,66 @@
+app:
+  description: 接收 Discord 訊息並回覆 OK。 V0.1 **整理人：** Antigravity AI & Porter
+  icon: "\U0001F916"
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: Discord-OK-Responder
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    opening_statement: "Discord Bot 已連線，接收訊息中。"
+    retriever_resource:
+      enabled: false
+    suggested_questions_after_answer:
+      enabled: false
+  graph:
+    edges:
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: answer
+        id: edge-start-to-answer
+        source: start
+        sourceHandle: source
+        target: answer_ok
+        targetHandle: target
+        type: custom
+    nodes:
+      - data:
+          desc: 接收來自 Discord 的輸入 (透過 sys.query)
+          selected: false
+          title: 開始
+          type: start
+          variables: []
+        height: 54
+        id: start
+        position:
+          x: 100
+          y: 200
+        positionAbsolute:
+          x: 100
+          y: 200
+        type: custom
+        width: 244
+      - data:
+          answer: "OK"
+          desc: 固定回覆 OK
+          selected: false
+          title: 回覆 OK
+          type: answer
+        height: 90
+        id: answer_ok
+        position:
+          x: 450
+          y: 200
+        positionAbsolute:
+          x: 450
+          y: 200
+        type: custom
+        width: 244
+  viewport:
+    x: 0
+    y: 0
+    zoom: 1.0

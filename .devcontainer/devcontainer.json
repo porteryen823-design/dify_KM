@@ -1,0 +1,33 @@
+{
+  // ── dify-aws-porter 遠端容器整合 ──────────────────────────────────────
+  // 使用前置條件：
+  //   1. SSH Agent 已啟動並載入 dify_ubuntu2.pem
+  //   2. Docker context "dify-aws-porter" 已建立
+  //   3. 在 VSCode 執行：
+  //      Ctrl+Shift+P → "Dev Containers: Attach to Running Container..."
+  //      → 切換 Docker context 為 dify-aws-porter → 選擇容器
+  // ────────────────────────────────────────────────────────────────────
+  "name": "dify-aws-porter / login-app",
+
+  // 指定附加至已存在的遠端容器（login-app）
+  // 若要附加不同容器，請修改此欄位
+  "image": "login-app:latest",
+
+  // 附加後自動安裝的 VSCode 擴展
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  // 遠端用戶（與 SSH 相同）
+  "remoteUser": "root"
+}

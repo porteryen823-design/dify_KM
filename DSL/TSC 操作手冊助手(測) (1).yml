@@ -1,0 +1,273 @@
+app:
+  description: '提供 TSC 操作手冊說明
+
+    提示語加強版 (經典)
+
+    '
+  icon: 🤖
+  icon_background: '#FFE4E8'
+  mode: advanced-chat
+  name: TSC 操作手冊助手(測)
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: '👋 您好！我是 TSC（Transfer System Controller）操作手冊助手。
+
+
+      我可以協助您查詢 TSC 系統的操作說明、參數設定、交通管制規則、自走車管理等相關問題。
+
+
+      請直接輸入您的問題，或點選下方常見問題快速開始：'
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 交管怎麼設定？
+    - EnableStraightRoadFirst 是什麼？
+    - 怎麼新增一台自走車？
+    - 什麼是路權？
+    - Group 設定在哪裡？要注意什麼？
+    - 車子一直要不到路權怎麼辦？
+    - TSC 可以控制幾台車？
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: llm-answer
+      source: llm
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: 1772767833257-source-1772767840337-target
+      source: '1772767833257'
+      sourceHandle: source
+      target: '1772767840337'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1772767840337-source-llm-target
+      source: '1772767840337'
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 73
+      id: '1772767833257'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1772767840337'
+          - result
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.2
+            think: true
+            top_k: 6
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 9ff80321-6170-4384-b0ed-e24ba73dfe25
+          role: system
+          text: "你是一位 TSC（Transfer System Controller）系統的專業技術支援工程師。\n你的任務是根據【知識庫中的\
+            \ TSC 操作手冊】回答使用者的問題。\n\n## 身份與角色\n- 你是易捷系統股份有限公司 (Gyro Systems)旗下 TSC\
+            \ 系統的資深技術支援工程師\n- 你的回答必須完全基於知識庫中的 TSC 操作手冊內容\n- 你熟悉半導體廠 AMR（Autonomous\
+            \ Mobile Robot）自走車派車與交通管制系統\n\n## 回答原則\n\n### 1. 精準引用\n- 回答時務必標註出自手冊的章節編號（如「依據\
+            \ 4.2.2.7 交通管制設定」）\n- 若涉及多個章節的交叉概念，逐一列出所有相關章節\n\n### 2. 術語對照\n- 使用者可能使用中文、英文、別名或縮寫來詢問同一功能\n\
+            - 請依據以下術語對照表理解使用者意圖，並在回答中標註中英文名稱：\n  - 主看板 = Dashboard = 首頁\n  - 基本設定\
+            \ = Settings = 齒輪設定\n  - 工作站 = Workstation = Port、機台 Port\n  - 區域管理 =\
+            \ Zone Management = Zone\n  - 搬運統計看板 = Transfer Statistics = 搬運統計\n  -\
+            \ 自走車統計看板 = Vehicle Statistics = AMR Statistics\n  - 命令歷史紀錄 = Transfer\
+            \ Commands = Commands\n  - 搬運任務看板 = Transfer Dashboard = 任務看板\n  - 地圖管理\
+            \ = Map Management = 地圖清單\n  - 地圖編輯 = Map Editor = 地圖設計\n  - 自走車看板 = Vehicle\
+            \ Dashboard = 車輛看板\n  - 自走車管理 = Vehicle Management = 車輛管理\n  - 電子貨架看板\
+            \ = eRack Dashboard = Erack Dashboard\n  - 電子貨架管理 = eRack Management =\
+            \ Erack Management\n  - 物聯網設備管理 = IOT Device Management = IoT Device\n\
+            \  - 設備維護 = Components Maintain = 元件維護\n  - 帳號管理 = Account Management\
+            \ = 權限管理\n  - 系統記錄管理 = Log Management = Log\n  - 系統記錄下載 = Log Files =\
+            \ Log Download\n  - 交通管制 = Traffic Control = 交管\n  - 路權 = Right of Way\
+            \ = ROW\n  - 群組 = Group = Group Protection\n  - 路口點 = Junction = 交管點、路口區\n\
+            \  - Keep 點 = Keep Point = 車輛可略過不停留的點\n  - Go 點 = Go Point = 車輛必須實際走到的點\n\
+            \  - 單行道 = One-Way Path = 單向路徑\n  - 路名 = Road = Road Name\n  - 任務併車 =\
+            \ Task Merging Logic = 批次任務\n  - 批次數量 = Batch Size = 任務數上限\n  - 集結逾時 =\
+            \ Collect Timeout = 集結等待時間\n  - 載具 ID = Carrier ID = Carrier\n  - 區域 ID\
+            \ = Zone ID = Zone\n  - 群組 ID = Group ID = Group\n  - BySourePort = Source-based\
+            \ dispatch = 依來源點分割調度\n  - ByDestPort = Destination-based dispatch = 依目的點分割調度\n\
+            \n### 3. 結構化回答格式\n回答時請採用以下格式：\n- **摘要**：用 1–2 句話概述答案\n- **詳細說明**：列點或分段說明具體操作步驟、參數、注意事項\n\
+            - **相關章節**：列出所涉及的所有手冊章節編號與標題\n- **注意事項**（若適用）：補充特殊限制或容易混淆的地方\n\n### 4.\
+            \ 回答限制\n- 若知識庫中未包含相關資訊，請明確回覆：「TSC 操作手冊中未涵蓋此問題，建議聯繫易捷系統技術支援。」\n- 不要捏造或推測手冊中不存在的功能\n\
+            - 不要回答與 TSC 系統無關的問題\n\n### 5. 語言規範\n- 預設使用繁體中文回覆\n- 英文專有名詞保持原文（如 Carrier\
+            \ ID、Junction、Group）\n- 參數名稱使用手冊原文格式（如 EnableStraightRoadFirst、KeepGoingRange）\n\
+            \n## 知識庫上下文\n{{#context#}}\n\n## 使用者問題\n{{#query#}}\n"
+        selected: true
+        title: 技術支援工程師的小幫手
+        type: llm
+        vision:
+          enabled: false
+      height: 88
+      id: llm
+      position:
+        x: 721
+        y: 251
+      positionAbsolute:
+        x: 721
+        y: 251
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#llm.text#}}'
+        selected: false
+        title: 直接回覆
+        type: answer
+        variables: []
+      height: 103
+      id: answer
+      position:
+        x: 1147
+        y: 574
+      positionAbsolute:
+        x: 1147
+        y: 574
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - L1kWwZMAiMyFapT6fqtHW/vr0vW/MyiIRj3Cs95Ain3qlgnBSgXELBY3i+4Pz89q
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 7
+          weights:
+            keyword_setting:
+              keyword_weight: 0
+            vector_setting:
+              embedding_model_name: qwen3-embedding-4b-q4_k_m:latest
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 1
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1772767833257'
+        - sys.query
+        retrieval_mode: multiple
+        selected: false
+        title: TSC 手冊 知識檢索(書銘)
+        type: knowledge-retrieval
+      height: 90
+      id: '1772767840337'
+      position:
+        x: 440
+        y: 496
+      positionAbsolute:
+        x: 440
+        y: 496
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 78.00000000000011
+      y: 53.50000000000006
+      zoom: 0.4999999999999999
+  rag_pipeline_variables: []

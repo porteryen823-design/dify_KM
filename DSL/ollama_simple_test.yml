@@ -1,0 +1,93 @@
+app:
+  description: 簡化版 Ollama 連線測試。僅含開始節點與 HTTP 請求。
+  icon: "\U0001F4E1"
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: Ollama Simple Test
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+      - data:
+          isInIteration: false
+          sourceType: start
+          targetType: http-request
+        id: edge-1
+        source: start
+        sourceHandle: source
+        target: http_test
+        targetHandle: target
+        type: custom
+    nodes:
+      - data:
+          desc: 手動觸發
+          selected: false
+          title: 開始
+          type: start
+          variables: []
+        height: 54
+        id: start
+        position:
+          x: 80
+          y: 280
+        positionAbsolute:
+          x: 80
+          y: 280
+        type: custom
+        width: 244
+      - data:
+          authorization:
+            config: null
+            type: no-auth
+          body:
+            data: ''
+            type: none
+          desc: 測試 Ollama API 連線
+          headers: ''
+          method: get
+          params: ''
+          timeout:
+            connect: 10
+            max_execution_time: 30
+            read: 20
+          retry_config:
+            max_retries: 1
+            retry_enabled: true
+          selected: false
+          title: HTTP 測試
+          type: http-request
+          url: http://gyro1.ddns.net:11434/api/tags
+          variables: []
+        height: 90
+        id: http_test
+        position:
+          x: 380
+          y: 280
+        positionAbsolute:
+          x: 380
+          y: 280
+        type: custom
+        width: 244
+  viewport:
+    x: 0
+    y: 0
+    zoom: 1

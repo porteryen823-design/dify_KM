@@ -63,9 +63,12 @@ async def on_message(message):
     # 若訊息過長 (Discord 限制 2000 字元)，需要分段發送
     if len(answer) > 2000:
         for i in range(0, len(answer), 2000):
-            await message.channel.send(answer[i:i+2000])
+            if i == 0:
+                await message.reply(answer[i:i+2000])
+            else:
+                await message.channel.send(answer[i:i+2000])
     else:
-        await message.channel.send(answer)
+        await message.reply(answer)
 
 if __name__ == '__main__':
     if not DISCORD_BOT_TOKEN or not DIFY_API_KEY:

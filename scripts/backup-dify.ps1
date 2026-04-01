@@ -1,8 +1,12 @@
-# Dify Full Backup Script (Windows PowerShell)
+# Dify Full Backup Script (Windows PowerShell) - LOCAL Environment
 # Covers: PostgreSQL, Weaviate, Redis, Storage Files, .env
 # Creator: Antigravity AI & Porter
+#
+# [NOTICE] 此腳本已更新為輸出至 backups\local\ 子目錄。
+# 建議改用新腳本: backup-dify-local.ps1 (功能相同，命名更清楚)
+# AWS Gyro 環境請改用: backup-dify-aws-gyro.ps1
 
-$BackupDir = "C:\VSCode_Proj\Dify\backups"
+$BackupDir = "C:\VSCode_Proj\Dify\backups\local"
 $Date = Get-Date -Format "yyyyMMdd_HHmmss"
 $LogFile = "$BackupDir\backup_log.txt"
 $RetentionDays = 7

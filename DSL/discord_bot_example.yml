@@ -1,0 +1,127 @@
+app:
+  description: 串接 Discord 範例 V0.1
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: Discord 連動助理
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - id: start-to-http
+      source: start
+      target: http_request
+      sourceHandle: source
+      targetHandle: target
+    - id: http-to-answer
+      source: http_request
+      target: answer
+      sourceHandle: source
+      targetHandle: target
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 54
+      id: start
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: '{"content": "收到新訊息：{{#sys.query#}}"}'
+          type: raw-text
+        desc: ''
+        headers: |-
+          Authorization: Bot YOUR_DISCORD_TOKEN
+          Content-Type: application/json
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        timeout:
+          connect: 3
+          max_execution_time: 15
+          read: 15
+          write: 15
+        title: 發送至 Discord
+        type: http-request
+        url: https://discord.com/api/v10/channels/1439192827077857393/messages
+        variables: []
+      height: 105
+      id: http_request
+      position:
+        x: 380
+        y: 282
+      positionAbsolute:
+        x: 380
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: 'OK!'
+        desc: ''
+        selected: false
+        title: 回覆 OK
+        type: answer
+        variables: []
+      height: 103
+      id: answer
+      position:
+        x: 680
+        y: 282
+      positionAbsolute:
+        x: 680
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 0
+      y: 0
+      zoom: 1

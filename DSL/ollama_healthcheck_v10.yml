@@ -1,0 +1,161 @@
+app:
+  description: Ollama 狀態檢查機器人 V10（健壯版）。修正 Python 節點空值與型別問題，確保工作流穩定運行。整理人：Antigravity AI & Porter
+  icon: "\U0001F6A1"
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: Ollama Health Check V10
+  use_icon_as_answer_icon: false
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+  graph:
+    edges:
+    - data: {isInIteration: false, sourceType: start, targetType: http-request}
+      id: edge-1
+      source: start
+      sourceHandle: source
+      target: http_test
+      targetHandle: target
+      type: custom
+    - data: {isInIteration: false, sourceType: http-request, targetType: if-else}
+      id: edge-2
+      source: http_test
+      sourceHandle: source
+      target: check_status
+      targetHandle: target
+      type: custom
+    - data: {isInIteration: false, sourceType: if-else, targetType: end}
+      id: edge-3
+      source: check_status
+      sourceHandle: 'true'
+      target: end_success
+      targetHandle: target
+      type: custom
+    - data: {isInIteration: false, sourceType: if-else, targetType: code}
+      id: edge-to-code
+      source: check_status
+      sourceHandle: 'false'
+      target: timestamp_fix
+      targetHandle: target
+      type: custom
+    - data: {isInIteration: false, sourceType: code, targetType: http-request}
+      id: edge-code-to-discord
+      source: timestamp_fix
+      sourceHandle: source
+      target: http_discord_alert
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 手動觸發監控
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 54
+      id: start
+      position: {x: 80, y: 280}
+      positionAbsolute: {x: 80, y: 280}
+      type: custom
+      width: 244
+    - data:
+        authorization: {config: null, type: no-auth}
+        body: {data: '', type: none}
+        desc: 測試 Ollama API 連線
+        headers: ''
+        method: get
+        params: ''
+        timeout: {connect: 10, max_execution_time: 30, read: 20}
+        retry_config: {max_retries: 1, retry_enabled: true}
+        selected: false
+        title: HTTP 測試
+        type: http-request
+        url: http://gyro1.ddns.net:11434/api/tags
+        variables: []
+      height: 90
+      id: http_test
+      position: {x: 350, y: 280}
+      positionAbsolute: {x: 350, y: 280}
+      type: custom
+      width: 244
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: '='
+            id: cond_success
+            value: '200'
+            varType: number
+            variable_selector: [http_test, status_code]
+          id: case_success
+          logical_operator: and
+        desc: 檢查是否成功
+        selected: false
+        title: 狀態檢查
+        type: if-else
+      height: 102
+      id: check_status
+      position: {x: 650, y: 280}
+      positionAbsolute: {x: 650, y: 280}
+      type: custom
+      width: 244
+    - data:
+        desc: 連線正常
+        outputs:
+        - value_selector: [http_test, body]
+          variable: message
+        selected: false
+        title: SUCCESS
+        type: end
+      height: 90
+      id: end_success
+      position: {x: 1250, y: 180}
+      positionAbsolute: {x: 1250, y: 180}
+      type: custom
+      width: 244
+    - data:
+        code: "import time\n\ndef main(timestamp_ms):\n    # \u82E5 timestamp_ms \u70BA None\uFF0C\u5242\u4F7F\u7528 Python \u7372\u53D6\u7576\u524D\u6642\u9593\n    try:\n        ms = int(timestamp_ms) if timestamp_ms is not None else int(time.time() * 1000)\n    except:\n        ms = int(time.time() * 1000)\n    \n    return {\n        \"unix_sec\": int(ms / 1000)\n    }"
+        code_language: python3
+        desc: \u5C07\u6BEB\u79D2\u8F49\u70BA\u79D2 (Unix Seconds)
+        outputs:
+          unix_sec: {type: number}
+        selected: false
+        title: 時間計算
+        type: code
+        variables:
+        - value_selector: [sys, query_timestamp]
+          variable: timestamp_ms
+      height: 54
+      id: timestamp_fix
+      position: {x: 950, y: 380}
+      positionAbsolute: {x: 950, y: 380}
+      type: custom
+      width: 244
+    - data:
+        authorization: {config: null, type: no-auth}
+        body:
+          data: "{\n  \"embeds\": [\n    {\n      \"title\": \"\u26A0\uFE0F Ollama \u72C0\u614B\u544A\u8B66\",\n      \"description\": \"\u6AA2\u67E5\u5230\u9060\u7AEF Ollama API \u7121\u6CD5\u6B63\u5E38連線 (Status: {{#http_test.status_code#}})\",\n      \"color\": 16711680,\n      \"fields\": [\n        {\n          \"name\": \"\u23F3 \u72C0\u614B碼\",\n          \"value\": \"`{{#http_test.status_code#}}`\",\n          \"inline\": true\n        },\n        {\n          \"name\": \"\uD83D\uDCCC API \u4F4D\u5740\",\n          \"value\": \"`http://gyro1.ddns.net:11434`\",\n          \"inline\": true\n        },\n        {\n          \"name\": \"\uD83D\uDD0D \u5075測\u6642\u9593\",\n          \"value\": \"<t:{{#timestamp_fix.unix_sec#}}:R>\",\n          \"inline\": false\n        }\n      ],\n      \"footer\": {\n        \"text\": \"Dify Health Checker @ AWS Gyro\"\n      }\n    }\n  ]\n}"
+          type: json
+        desc: Discord Embed \u544A\u8B66
+        headers: "Authorization: Bot YOUR_DISCORD_TOKEN"
+        method: post
+        params: ''
+        timeout: {connect: 10, max_execution_time: 30, read: 20}
+        retry_config: {max_retries: 1, retry_enabled: true}
+        selected: false
+        title: Discord 告警
+        type: http-request
+        url: "https://discord.com/api/v10/channels/1439192827077857393/messages"
+        variables: []
+      height: 90
+      id: http_discord_alert
+      position: {x: 1250, y: 380}
+      positionAbsolute: {x: 1250, y: 380}
+      type: custom
+      width: 244
+  viewport: {x: 0, y: 0, zoom: 1}
