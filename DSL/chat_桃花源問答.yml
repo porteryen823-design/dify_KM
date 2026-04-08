@@ -1,0 +1,283 @@
+app:
+  description: '桃花源 Knowledge Retrieval - Chatflow 版本'
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: dify_chat_桃花源問答
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.2@fcf107badccaf57948634ad2c557d393c3894138d83f4eb3f959e9a1d3a86512
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+    opening_statement: 你好! 歡迎使用 桃花源記問題 小幫手!
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 漁人是哪個朝代的人?
+    - 後來有哪幾個人想去桃花源?
+    - 桃花源內景象是?
+    - 桃花源內是那個朝代的人?
+    suggested_questions_after_answer:
+      enabled: true
+    text_to_speech:
+      enabled: false
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: edge_start_knowledge
+      source: start_node
+      sourceHandle: source
+      target: knowledge_node
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: edge_knowledge_llm
+      source: knowledge_node
+      sourceHandle: source
+      target: llm_node
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: llm
+        targetType: code
+      id: edge_llm_code
+      source: llm_node
+      sourceHandle: source
+      target: code_node
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: answer
+      id: edge_code_answer
+      source: code_node
+      sourceHandle: source
+      target: answer_node
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: Chatflow 入口
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 73
+      id: start_node
+      position:
+        x: 80
+        y: 300
+      positionAbsolute:
+        x: 80
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - tj6qaybsBZv2YpK8p2Kc6pg4+2zUXEA4XjJOpnW0mX0A6BVDzqZndHMQTY4eBtYb
+        desc: 檢索桃花源相關知識
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 2
+          weights:
+            keyword_setting:
+              keyword_weight: 0.2
+            vector_setting:
+              embedding_model_name: qwen3-embedding-4b-q4_k_m:latest
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 0.8
+            weight_type: customized
+        query_variable_selector:
+        - sys
+        - query
+        retrieval_mode: multiple
+        selected: false
+        title: 知識檢索
+        type: knowledge-retrieval
+      height: 150
+      id: knowledge_node
+      position:
+        x: 360
+        y: 300
+      positionAbsolute:
+        x: 360
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - knowledge_node
+          - result
+        desc: 桃花源文學導覽助理
+        memory:
+          enabled: true
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: false
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.1
+            top_k: 1
+            top_p: 0.4
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: system-prompt
+          role: system
+          text: '你是一位專精於《桃花源記》與古典文學的文學導覽助理。
+
+            請將以下 <context></context> XML 標籤內的內容視為你唯一的知識來源。
+
+
+            <context>
+
+            {{#context#}}
+
+            </context>
+
+
+            當你回答使用者時，請遵循以下原則：
+
+            1. 解釋說明：請生動且深入地解釋文章段落、字詞意涵，以及背後的情感與哲理。
+
+            2. 忠於文本：如果不清楚答案或文本未提及，請直接表達不知道，絕對不要編造情節或外加歷史故事。
+
+            3. 隱藏來源：請自然地回答，避免在回答中提及「根據提供的心得」或「上下文顯示」等字眼。
+
+            4. 情境引導：當使用者提問較簡短時，除了字面解釋，可以適度補充文章中的相關情境，幫助使用者更融入桃花源的世界。
+
+            5. 語氣與語言設定：請採用體貼、專業且文致的導覽語氣，並統一使用繁體中文進行回答。'
+        - id: user-query
+          role: user
+          text: "{{#sys.query#}}"
+        reasoning_format: tagged
+        selected: false
+        title: LLM 導覽
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 148
+      id: llm_node
+      position:
+        x: 660
+        y: 300
+      positionAbsolute:
+        x: 660
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import re\ndef main(llm_text: str) -> dict:\n    cleaned = re.sub(r'<think>.*?</think>',\
+          \ '', llm_text, flags=re.DOTALL).strip()\n    return {\"cleaned_text\":\
+          \ cleaned}"
+        code_language: python3
+        desc: 移除 LLM 輸出中的 <think>...</think> 思維鏈標籤
+        outputs:
+          cleaned_text:
+            children: null
+            type: string
+        selected: false
+        title: 清理思維標籤
+        type: code
+        variables:
+        - value_selector:
+          - llm_node
+          - text
+          variable: llm_text
+      height: 95
+      id: code_node
+      position:
+        x: 960
+        y: 300
+      positionAbsolute:
+        x: 960
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: "{{#code_node.cleaned_text#}}"
+        desc: 最終回覆
+        selected: false
+        title: 回覆
+        type: answer
+        variables: []
+      height: 88
+      id: answer_node
+      position:
+        x: 1260
+        y: 300
+      positionAbsolute:
+        x: 1260
+        y: 300
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.7
+  rag_pipeline_variables: []

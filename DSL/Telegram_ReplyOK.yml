@@ -1,0 +1,231 @@
+app:
+  description: 'Telegram Webhook 接收訊息並自動回覆 OK V0.1'
+  icon: 🤖
+  icon_background: '#E0F2FE'
+  mode: workflow
+  name: Telegram ReplyOK
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: code
+      id: start-to-extract
+      source: node_start
+      sourceHandle: source
+      target: node_extract_chat_id
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: http-request
+      id: extract-to-send
+      source: node_extract_chat_id
+      sourceHandle: source
+      target: node_send_ok
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: end
+      id: send-to-end
+      source: node_send_ok
+      sourceHandle: source
+      target: node_end
+      targetHandle: target
+      type: custom
+    nodes:
+    # ── 1. Start（Webhook 觸發）──────────────────────────────────────────
+    - data:
+        desc: 'Telegram 傳送 POST 請求至 Webhook 時觸發'
+        selected: false
+        title: Start
+        type: start
+        variables: []
+      height: 54
+      id: node_start
+      position:
+        x: 80
+        y: 200
+      positionAbsolute:
+        x: 80
+        y: 200
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+
+    # ── 2. Code Node：從 Webhook Body 解析 chat_id ──────────────────────
+    - data:
+        code: |
+          import json
+
+          def main(body: str) -> dict:
+              try:
+                  payload = json.loads(body)
+                  msg = payload.get("message") or payload.get("edited_message") or {}
+                  chat_id = str(msg.get("chat", {}).get("id", ""))
+                  text = msg.get("text", "")
+              except Exception:
+                  chat_id = ""
+                  text = ""
+              return {
+                  "chat_id": chat_id,
+                  "user_text": text
+              }
+        code_language: python3
+        desc: '從 Telegram Webhook Body 解析 chat_id 與訊息文字'
+        outputs:
+          chat_id:
+            children: null
+            type: string
+          user_text:
+            children: null
+            type: string
+        selected: false
+        title: 解析 Chat ID
+        type: code
+        variables:
+        - value_selector:
+          - sys
+          - request_body
+          variable: body
+      height: 102
+      id: node_extract_chat_id
+      position:
+        x: 380
+        y: 200
+      positionAbsolute:
+        x: 380
+        y: 200
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+
+    # ── 3. HTTP Request：呼叫 Telegram sendMessage 回覆 OK ───────────────
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: >-
+            {
+              "chat_id": "{{#node_extract_chat_id.chat_id#}}",
+              "text": "OK"
+            }
+          type: json
+        desc: '呼叫 Telegram Bot API 回覆使用者 OK'
+        headers: "Content-Type: application/json"
+        method: post
+        params: ''
+        timeout:
+          connect: 10
+          max_execution_time: 30
+          read: 20
+        retry_config:
+          max_retries: 1
+          retry_enabled: true
+        selected: false
+        title: 回覆 OK 至 Telegram
+        type: http-request
+        url: "https://api.telegram.org/bot8289359484:AAFtJLiPRZV_l60BCjyNZH8bwoF389Zw2vA/sendMessage"
+        variables: []
+      height: 90
+      id: node_send_ok
+      position:
+        x: 680
+        y: 200
+      positionAbsolute:
+        x: 680
+        y: 200
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+
+    # ── 4. End ───────────────────────────────────────────────────────────
+    - data:
+        desc: '工作流結束'
+        outputs:
+        - value_selector:
+          - node_send_ok
+          - status_code
+          variable: telegram_status
+        selected: false
+        title: End
+        type: end
+      height: 54
+      id: node_end
+      position:
+        x: 980
+        y: 200
+      positionAbsolute:
+        x: 980
+        y: 200
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+
+  viewport:
+    x: 0
+    y: 0
+    zoom: 1

@@ -1,0 +1,574 @@
+app:
+  description: ''
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: 表单信息提交系统
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai_api_compatible:0.0.16@d41b09aca46cdd3876f70b4c91d464c4588fc0bdc844ced6ee426283ead6ce8e
+kind: app
+version: 0.3.1
+workflow:
+  conversation_variables:
+  - description: 表单值身份ID
+    id: 3c153e34-9c89-4445-8273-9ab567415d9d
+    name: id_num
+    selector:
+    - conversation
+    - id_num
+    value: ''
+    value_type: string
+  - description: 表单值性别
+    id: 7777e7ab-347d-4692-8fb5-76f8fcfe43c2
+    name: sex
+    selector:
+    - conversation
+    - sex
+    value: ''
+    value_type: string
+  - description: 表单值用户名
+    id: f064ed70-e404-4143-82e6-e1c8425b90ce
+    name: user
+    selector:
+    - conversation
+    - user
+    value: ''
+    value_type: string
+  - description: 是否提交信息，1为提交信息，0为非提交信息
+    id: 62cd404d-45e1-4179-87e1-7fc9324a212f
+    name: is_add_info
+    selector:
+    - conversation
+    - is_add_info
+    value: 0
+    value_type: integer
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: 'Hi！我是信息管理助手！
+
+      1. 如果需要提交信息，请点击【提交信息】。
+
+      2. 如果需要修改信息，请点击【修改信息】。
+
+
+      '
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 提交信息
+    - 修改信息
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: template-transform
+      id: 1754984145144-1-1754984190626-target
+      selected: false
+      source: '1754984145144'
+      sourceHandle: '1'
+      target: '1754984190626'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: template-transform
+        targetType: answer
+      id: 1754984190626-source-1754984225296-target
+      selected: false
+      source: '1754984190626'
+      sourceHandle: source
+      target: '1754984225296'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: code
+      id: 1754984145144-1754984400810-1754984592013-target
+      selected: false
+      source: '1754984145144'
+      sourceHandle: '1754984400810'
+      target: '1754984592013'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: assigner
+      id: 1754984592013-source-1754984696766-target
+      selected: false
+      source: '1754984592013'
+      sourceHandle: source
+      target: '1754984696766'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: assigner
+        targetType: answer
+      id: 1754984696766-source-1754984718259-target
+      selected: false
+      source: '1754984696766'
+      sourceHandle: source
+      target: '1754984718259'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: question-classifier
+      id: 1754274386950-source-1754984145144-target
+      selected: false
+      source: '1754274386950'
+      sourceHandle: source
+      target: '1754984145144'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: if-else
+      id: 1754984145144-2-1754984817820-target
+      source: '1754984145144'
+      sourceHandle: '2'
+      target: '1754984817820'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: answer
+      id: 1754984817820-true-1754984839676-target
+      source: '1754984817820'
+      sourceHandle: 'true'
+      target: '1754984839676'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: template-transform
+      id: 1754984817820-false-17549848755400-target
+      source: '1754984817820'
+      sourceHandle: 'false'
+      target: '17549848755400'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: template-transform
+        targetType: answer
+      id: 17549848755400-source-1754985160576-target
+      source: '17549848755400'
+      sourceHandle: source
+      target: '1754985160576'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables: []
+      height: 54
+      id: '1754274386950'
+      position:
+        x: 289.21154995256086
+        y: 156.94562141429606
+      positionAbsolute:
+        x: 289.21154995256086
+        y: 156.94562141429606
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        classes:
+        - id: '1'
+          name: 提交信息
+        - id: '2'
+          name: 修改信息
+        - id: '1754984400810'
+          name: 包含user、sex、user_id参数的键值对
+        desc: ''
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.7
+            top_p: 0.9
+          mode: chat
+          name: /home/xyt/Qwen2_5-32B-Instruct
+          provider: langgenius/openai_api_compatible/openai_api_compatible
+        query_variable_selector:
+        - '1754274386950'
+        - sys.query
+        selected: false
+        title: 问题分类器
+        topics: []
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 208
+      id: '1754984145144'
+      position:
+        x: 688
+        y: 156.94562141429606
+      positionAbsolute:
+        x: 688
+        y: 156.94562141429606
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        selected: false
+        template: "<form data-format=\"json\">\n  <label for=\"user\">姓名：</label>\n\
+          \  <input type=\"text\" name=\"user\" />\n  <label for=\"sex\">性别：</label>\n\
+          \  <input type=\"select\" name=\"sex\" data-options='[\"男\", \"女\"]'/>\n\
+          \  <label for=\"password\">身份ID：</label>\n  <input type=\"password\" name=\"\
+          user_id\" />\n  <button data-size=\"small\" data-variant=\"primary\">提交</button>\n\
+          </form>"
+        title: 提交信息表单
+        type: template-transform
+        variables: []
+      height: 52
+      id: '1754984190626'
+      position:
+        x: 1031.842309990512
+        y: 4.918561782101776
+      positionAbsolute:
+        x: 1031.842309990512
+        y: 4.918561782101776
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '### 请输入相关信息：
+
+          {{#1754984190626.output#}}
+
+          '
+        desc: ''
+        selected: false
+        title: 直接回复 3
+        type: answer
+        variables: []
+      height: 119
+      id: '1754984225296'
+      position:
+        x: 1370.105645315623
+        y: -75.97657086622178
+      positionAbsolute:
+        x: 1370.105645315623
+        y: -75.97657086622178
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\n\ndef main(arg1: str) -> dict:\n    info = json.loads(arg1)\n\
+          \    return {\n        \"user\": info.get(\"user\"),\n        \"sex\": info.get(\"\
+          sex\"),\n        \"user_id\": info.get(\"user_id\"),\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          sex:
+            children: null
+            type: string
+          user:
+            children: null
+            type: string
+          user_id:
+            children: null
+            type: string
+        selected: false
+        title: 提取信息
+        type: code
+        variables:
+        - value_selector:
+          - sys
+          - query
+          value_type: string
+          variable: arg1
+      height: 52
+      id: '1754984592013'
+      position:
+        x: 1031.842309990512
+        y: 429.26229803984876
+      positionAbsolute:
+        x: 1031.842309990512
+        y: 429.26229803984876
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        items:
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1754984592013'
+          - user
+          variable_selector:
+          - conversation
+          - user
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1754984592013'
+          - sex
+          variable_selector:
+          - conversation
+          - sex
+          write_mode: over-write
+        - input_type: variable
+          operation: over-write
+          value:
+          - '1754984592013'
+          - user_id
+          variable_selector:
+          - conversation
+          - id_num
+          write_mode: over-write
+        selected: false
+        title: 变量赋值 2
+        type: assigner
+        version: '2'
+      height: 142
+      id: '1754984696766'
+      position:
+        x: 1370.105645315623
+        y: 397.1831937137895
+      positionAbsolute:
+        x: 1370.105645315623
+        y: 397.1831937137895
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '### 成功接收信息！
+
+          用户名：{{#1754984592013.user#}}
+
+          性别：{{#1754984592013.sex#}}
+
+          身份ID：{{#1754984592013.user_id#}}
+
+          '
+        desc: ''
+        selected: false
+        title: 直接回复 4
+        type: answer
+        variables: []
+      height: 157
+      id: '1754984718259'
+      position:
+        x: 1732.07962296869
+        y: 397.1831937137895
+      positionAbsolute:
+        x: 1732.07962296869
+        y: 397.1831937137895
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: empty
+            id: 32e1ac4c-fc8c-41e7-9595-8797048e9e56
+            value: ''
+            varType: string
+            variable_selector:
+            - conversation
+            - user
+          - comparison_operator: empty
+            id: fe2d6dc3-c3c7-439f-b6ae-b88634249161
+            value: ''
+            varType: string
+            variable_selector:
+            - conversation
+            - sex
+          - comparison_operator: empty
+            id: 04757798-87df-4168-9566-a366e0ab5752
+            value: ''
+            varType: string
+            variable_selector:
+            - conversation
+            - id_num
+          id: 'true'
+          logical_operator: or
+        desc: ''
+        selected: false
+        title: 条件分支
+        type: if-else
+      height: 176
+      id: '1754984817820'
+      position:
+        x: 1031.842309990512
+        y: 132.52355879443593
+      positionAbsolute:
+        x: 1031.842309990512
+        y: 132.52355879443593
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '### 没有已提交的信息，无法修改！
+
+          '
+        desc: ''
+        selected: false
+        title: 直接回复 3
+        type: answer
+        variables: []
+      height: 100
+      id: '1754984839676'
+      position:
+        x: 1370.105645315623
+        y: 76.73381214041967
+      positionAbsolute:
+        x: 1370.105645315623
+        y: 76.73381214041967
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        desc: ''
+        selected: false
+        template: "<form data-format=\"json\">\n  <label for=\"user\">姓名：</label>\n\
+          \  <input type=\"text\" name=\"user\" value={{ user }} />\n  <label for=\"\
+          sex\">性别：</label>\n  <input type=\"select\" name=\"sex\" data-options='[\"\
+          男\", \"女\"]' value={{ sex }} />\n  <label for=\"password\">身份ID：</label>\n\
+          \  <input type=\"password\" name=\"user_id\" value={{ user_id }} />\n  <button\
+          \ data-size=\"small\" data-variant=\"primary\">提交</button>\n</form>"
+        title: 修改信息表单
+        type: template-transform
+        variables:
+        - value_selector:
+          - conversation
+          - user
+          value_type: string
+          variable: user
+        - value_selector:
+          - conversation
+          - sex
+          value_type: string
+          variable: sex
+        - value_selector:
+          - conversation
+          - id_num
+          value_type: string
+          variable: user_id
+      height: 52
+      id: '17549848755400'
+      position:
+        x: 1370.105645315623
+        y: 238.95975746516416
+      positionAbsolute:
+        x: 1370.105645315623
+        y: 238.95975746516416
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '### 请修改信息：
+
+          {{#17549848755400.output#}}
+
+          '
+        desc: ''
+        selected: false
+        title: 直接回复 4
+        type: answer
+        variables: []
+      height: 119
+      id: '1754985160576'
+      position:
+        x: 1672.105645315623
+        y: 238.95975746516416
+      positionAbsolute:
+        x: 1672.105645315623
+        y: 238.95975746516416
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: 2.383374826428735
+      y: 309.94579399059126
+      zoom: 0.7169776240079134
