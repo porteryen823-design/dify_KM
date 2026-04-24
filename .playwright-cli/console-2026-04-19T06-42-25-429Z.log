@@ -1,0 +1,6 @@
+[     527ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://weather.yahoo.com/zh-hant-tw/tw/%E6%96%B0%E7%AB%B9%E5%B8%82/%E6%96%B0%E7%AB%B9%E5%B8%82/:0
+[    1200ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ :0
+[    1204ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ :0
+[    1207ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ :0
+[    2225ms] [TIMEEND] GA consent: 191.64599609375 ms @ https://s.yimg.com/ss/analytics3.js:0
+[    3145ms] [WARNING] Didomi - User is a bot and consent is not required for bots. The notice will not be shown. @ https://ec.yimg.com/didomi/sdk/80e4f3bcfe5654ead066aaa58f9235cb9eb48845/modern/sdk.80e4f3bcfe5654ead066aaa58f9235cb9eb48845.js:1

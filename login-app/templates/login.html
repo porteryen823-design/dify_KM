@@ -5,7 +5,7 @@
         <div class="card shadow border-0 rounded-4">
             <div class="card-body p-5">
                 <div class="text-center mb-4">
-                    <h3 class="fw-bold">歡迎回到 QA Bot Portal</h3>
+                    <h3 class="fw-bold">歡迎回到 QA Bot Portal v1.0.3</h3>
                     <p class="text-muted">請登入以繼續使用服務</p>
                 </div>
                 <form method="POST" action="{{ portal_prefix }}/login?next={{ next_url }}">
@@ -14,14 +14,18 @@
                         <label class="form-label fw-semibold">使用者帳號</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person"></i></span>
-                            <input type="text" name="userid" class="form-control" required autofocus placeholder="請輸入帳號">
+                            <input type="text" name="userid" class="form-control" required autofocus placeholder="請輸入帳號或 Email">
+                        </div>
+                        <div class="form-text mt-2">
+                           <i class="bi bi-info-circle me-1"></i>
+                           支援 @gyro.com.tw 或 @gyrobot.com 免密碼登入
                         </div>
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-semibold">密碼</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="pwd" class="form-control" required placeholder="請輸入密碼">
+                            <input type="password" name="pwd" class="form-control" placeholder="請輸入密碼">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 fs-5 fw-semibold rounded-3 mb-3">登 入</button>

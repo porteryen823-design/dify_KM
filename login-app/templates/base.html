@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QA Bot Portal</title>
+    <title>QA Bot Portal {{ app_version }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
@@ -72,10 +72,10 @@
         applyTheme(getPreferredTheme());
     </script>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="{{ portal_prefix }}/apps"><strong>QA Bot Portal</strong></a>
+            <a class="navbar-brand" href="{{ portal_prefix }}/apps"><strong>QA Bot Portal {{ app_version }}</strong></a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -94,6 +94,8 @@
                             <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/users">使用者管理</a></li>
                             <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/user_apps">使用者 App 權限</a></li>
                             <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/apps">App 管理</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ portal_prefix }}/admin/chat_history"><i class="bi bi-chat-square-text"></i> 問答紀錄</a></li>
                         </ul>
                     </li>
                     {% endif %}
@@ -136,6 +138,9 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>

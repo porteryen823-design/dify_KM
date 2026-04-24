@@ -1,0 +1,236 @@
+[
+  {
+    "//": "=== 範例 1：商品卡片 ===",
+    "type": "flex",
+    "altText": "商品推薦",
+    "contents": {
+      "type": "bubble",
+      "hero": {
+        "type": "image",
+        "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+        "size": "full",
+        "aspectRatio": "20:13",
+        "aspectMode": "cover"
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "Brown Cafe",
+            "weight": "bold",
+            "size": "xl"
+          },
+          {
+            "type": "box",
+            "layout": "baseline",
+            "margin": "md",
+            "contents": [
+              { "type": "icon", "size": "sm", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png" },
+              { "type": "icon", "size": "sm", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png" },
+              { "type": "icon", "size": "sm", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png" },
+              { "type": "icon", "size": "sm", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png" },
+              { "type": "icon", "size": "sm", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gray_star_28.png" },
+              { "type": "text", "text": "4.0", "size": "sm", "color": "#999999", "margin": "md", "flex": 0 }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "vertical",
+            "margin": "lg",
+            "spacing": "sm",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  { "type": "text", "text": "地點", "color": "#aaaaaa", "size": "sm", "flex": 1 },
+                  { "type": "text", "text": "台北市信義區信義路五段", "wrap": true, "color": "#666666", "size": "sm", "flex": 5 }
+                ]
+              },
+              {
+                "type": "box",
+                "layout": "baseline",
+                "spacing": "sm",
+                "contents": [
+                  { "type": "text", "text": "時間", "color": "#aaaaaa", "size": "sm", "flex": 1 },
+                  { "type": "text", "text": "10:00 - 22:00", "wrap": true, "color": "#666666", "size": "sm", "flex": 5 }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "button",
+            "style": "link",
+            "height": "sm",
+            "action": { "type": "uri", "label": "查看地圖", "uri": "https://maps.google.com" }
+          },
+          {
+            "type": "button",
+            "style": "primary",
+            "height": "sm",
+            "action": { "type": "message", "label": "立即預訂", "text": "我要預訂 Brown Cafe" }
+          }
+        ]
+      }
+    }
+  },
+
+  {
+    "//": "=== 範例 2：訂單確認 ===",
+    "type": "flex",
+    "altText": "訂單確認通知",
+    "contents": {
+      "type": "bubble",
+      "styles": {
+        "header": { "backgroundColor": "#00B900" }
+      },
+      "header": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          { "type": "text", "text": "訂單確認", "color": "#ffffff", "size": "xl", "weight": "bold" },
+          { "type": "text", "text": "感謝您的訂購！", "color": "#ffffffcc", "size": "sm" }
+        ]
+      },
+      "body": {
+        "type": "box",
+        "layout": "vertical",
+        "spacing": "md",
+        "contents": [
+          { "type": "text", "text": "訂單明細", "weight": "bold", "size": "lg" },
+          { "type": "separator" },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              { "type": "text", "text": "美式咖啡 x2", "size": "sm", "flex": 3 },
+              { "type": "text", "text": "NT$180", "size": "sm", "align": "end", "flex": 1 }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              { "type": "text", "text": "拿鐵 x1", "size": "sm", "flex": 3 },
+              { "type": "text", "text": "NT$130", "size": "sm", "align": "end", "flex": 1 }
+            ]
+          },
+          { "type": "separator" },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              { "type": "text", "text": "總計", "weight": "bold", "flex": 3 },
+              { "type": "text", "text": "NT$310", "weight": "bold", "align": "end", "color": "#00B900", "flex": 1 }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "margin": "md",
+            "contents": [
+              { "type": "text", "text": "訂單編號", "size": "xs", "color": "#aaaaaa", "flex": 2 },
+              { "type": "text", "text": "#20240414-0023", "size": "xs", "color": "#aaaaaa", "align": "end", "flex": 3 }
+            ]
+          }
+        ]
+      },
+      "footer": {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "button",
+            "style": "primary",
+            "color": "#00B900",
+            "action": { "type": "message", "label": "查看訂單狀態", "text": "查詢訂單 #20240414-0023" }
+          }
+        ]
+      }
+    }
+  },
+
+  {
+    "//": "=== 範例 3：Carousel 輪播（多張卡片）===",
+    "type": "flex",
+    "altText": "今日推薦課程",
+    "contents": {
+      "type": "carousel",
+      "contents": [
+        {
+          "type": "bubble",
+          "size": "kilo",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              { "type": "text", "text": "🐍 Python 入門", "weight": "bold", "size": "md", "wrap": true },
+              { "type": "text", "text": "適合初學者", "size": "xs", "color": "#aaaaaa" },
+              { "type": "text", "text": "NT$999", "size": "lg", "weight": "bold", "color": "#ff6b35", "margin": "sm" }
+            ]
+          },
+          "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              { "type": "button", "style": "primary", "height": "sm", "action": { "type": "message", "label": "報名", "text": "報名 Python 入門" } }
+            ]
+          }
+        },
+        {
+          "type": "bubble",
+          "size": "kilo",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              { "type": "text", "text": "⚛️ React 實戰", "weight": "bold", "size": "md", "wrap": true },
+              { "type": "text", "text": "中高級", "size": "xs", "color": "#aaaaaa" },
+              { "type": "text", "text": "NT$1,599", "size": "lg", "weight": "bold", "color": "#ff6b35", "margin": "sm" }
+            ]
+          },
+          "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              { "type": "button", "style": "primary", "height": "sm", "action": { "type": "message", "label": "報名", "text": "報名 React 實戰" } }
+            ]
+          }
+        },
+        {
+          "type": "bubble",
+          "size": "kilo",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "sm",
+            "contents": [
+              { "type": "text", "text": "🤖 AI 應用開發", "weight": "bold", "size": "md", "wrap": true },
+              { "type": "text", "text": "進階課程", "size": "xs", "color": "#aaaaaa" },
+              { "type": "text", "text": "NT$2,499", "size": "lg", "weight": "bold", "color": "#ff6b35", "margin": "sm" }
+            ]
+          },
+          "footer": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              { "type": "button", "style": "primary", "height": "sm", "action": { "type": "message", "label": "報名", "text": "報名 AI 應用開發" } }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

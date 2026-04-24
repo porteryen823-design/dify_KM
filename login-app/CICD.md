@@ -1,79 +1,109 @@
 # 🚀 Login-App CI/CD 部署手冊
 
-本文件記錄了 `login-app` 的兩種部署方式：**GitHub Actions (自動)** 與 **Local Direct (手動/本地)**。
+本文件記錄了 `login-app` 的手動本地部署方式（tar + scp）。
 
-**整理人：** Antigravity AI & Porter  
-**更新日期：** 2026-03-24
+**整理人：** Porter  
+**更新日期：** 2026-04-23
 
 ---
 
 ## 🏗️ 基礎環境資訊
-* **AWS IP:** `52.196.249.194`
-* **SSH User:** `ubuntu`
-* **PEM Key Path:** `C:\Users\porte\Downloads\dify_ubuntu2.pem`
-* **App Port:** `5050`
-* **遠端路徑:** `~/apps/login-app`
+
+| 項目 | 值 |
+|------|----|
+| **SSH Host Alias** | `dify-aws-gyro` |
+| **AWS IP** | `54.250.195.137` |
+| **SSH User** | `ubuntu` |
+| **PEM Key** | `C:/Users/porte/Downloads/gyro_dify.pem` |
+| **SSH Config** | `C:/Users/porte/.ssh/config` |
+| **App Port** | `5050` |
+| **遠端程式碼路徑** | `~/Dify/login-app/` |
+| **資料庫路徑** | `~/Dify/login-app/data/users.db` |
+| **容器名稱** | `docker-login_app-1` |
 
 ---
 
-## 🛠️ 方式 A：GitHub Actions (全自動部署)
-適用於團隊協作或正式環境更新。當你 `git push` 到 GitHub 時，AWS 會自動更新。
+## 🚀 手動部署（tar + scp）
 
-### 1. 設定 GitHub Secrets
-前往 GitHub 倉庫的 **Settings > Secrets and variables > Actions**，新增以下 Secrets：
+> **重要：** 整個 `~/Dify/login-app/` 目錄以 Volume 掛載進容器（`/app`），  
+> 因此只需更新檔案後 **restart 容器**即可，**不需要 rebuild image**。
 
-| Secret 名稱 | 內容範例 |
-|-------------|----------|
-| `EC2_HOST` | `52.196.249.194` |
-| `EC2_USER` | `ubuntu` |
-| `EC2_PORT` | `22` |
-| `EC2_KEY` | `dify_ubuntu2.pem` 的完整文字內容 |
+### 完整指令（在本地 Git Bash 執行）
 
-### 2. 工作流檔案 (Workflow)
-存放於 [`.github/workflows/deploy.yml`](file:///c:/VSCode_Proj/Dify/.github/workflows/deploy.yml)。  
-**觸發條件：** 全自動，異動 `login-app/` 並 Push 後自動啟動。
+```bash
+# Step 1：打包（排除 data/、快取檔案）
+tar \
+  --exclude='login-app/data' \
+  --exclude='login-app/__pycache__' \
+  --exclude='login-app/.pytest_cache' \
+  --exclude='login-app/*.pyc' \
+  -czf /tmp/login-app-deploy.tar.gz login-app/
 
----
+# Step 2：上傳
+scp /tmp/login-app-deploy.tar.gz dify-aws-gyro:/tmp/
 
-## 💻 方式 B：本地直接部署 (Local Direct)
-適用於快速測試或不經過 GitHub 的情況。
-
-### 1. 使用 PowerShell 一鍵部署
-直接在 VSCode 或 PowerShell 執行：
-```powershell
-.\login-app\deploy-local-ps.ps1
-```
-
-### 2. 使用 Antigravity 工作流指令
-在對話框輸入：
-```
-/deploy-aws-local
+# Step 3：遠端解壓 + 重啟容器
+ssh dify-aws-gyro "
+  tar xzf /tmp/login-app-deploy.tar.gz -C ~/Dify/ &&
+  docker restart docker-login_app-1 &&
+  docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' | grep login
+"
 ```
 
 ---
 
 ## 📂 核心檔案說明
 
-| 檔案名稱 | 用途 |
-|----------|------|
-| [`login-app/deploy.sh`](file:///c:/VSCode_Proj/Dify/login-app/deploy.sh) | **最重要！** 這是 AWS 端執行的腳本。負責 Build 容器、重啟服務。 |
-| [`login-app/Dockerfile`](file:///c:/VSCode_Proj/Dify/login-app/Dockerfile) | 定義 Python 3.11 環境與啟動指令。 |
-| [`login-app/deploy-local-ps.ps1`](file:///c:/VSCode_Proj/Dify/login-app/deploy-local-ps.ps1) | 本地端專用的連線與同步腳本。 |
+| 檔案 | 用途 |
+|------|------|
+| `app.py` | Flask 主程式，所有路由與 DB helpers |
+| `Dockerfile` | Python 3.11 環境定義（build 用，volume 模式不需 rebuild） |
+| `requirements.txt` | Python 套件清單 |
+| `deploy.sh` | 舊版 docker run 部署腳本（目前環境改用 docker compose，保留備用） |
+| `templates/` | Jinja2 HTML 模板 |
+| `data/` | **不可同步！** 含 `users.db`，僅存在於遠端，由 Docker volume 持久化 |
 
 ---
 
-## ⚠️ 重要規範與注意事項
+## ⚠️ 重要規範
 
-### 1. 資料庫持久化 (Persistence)
-* **規則：** 本地部署與 GitHub Actions 均已排除 `data/` 目錄的同步。
-* **原因：** 確保 AWS 上 `data/` 裡的 `users.db` 或 CSV 檔案**不會**被本地空白資料覆蓋。
-* **路徑映射：** Docker 啟動時使用 `-v ~/apps/login-app/data:/app/data`。
+### 1. data/ 絕對不可覆蓋
+* `data/` 目錄內含 `users.db`（所有帳號、App 設定、對話紀錄）
+* tar 打包時已明確 `--exclude='login-app/data'`
+* 解壓時 tar 只會新增/覆蓋 archive 內的檔案，不會刪除 `data/`
 
-### 2. 安全組設定 (Security Groups)
-* 如果無法訪問網頁，請確認 AWS Console 開放了 **Port 5050 (TCP)** 給 `0.0.0.0/0`。
+### 2. Volume 掛載架構
+遠端容器啟動方式（docker compose）：
+```
+~/Dify/login-app  →  /app        （程式碼，整個目錄掛載）
+~/Dify/login-app/data  →  /app/data  （資料庫，獨立掛載）
+```
+更新程式碼後只需 `docker restart docker-login_app-1`。
 
-### 3. 如何修正部署邏輯？
-* 若要修改部署方式（如更換 Port），請優先修改 [`login-app/deploy.sh`](file:///c:/VSCode_Proj/Dify/login-app/deploy.sh)。
+### 3. 安全組設定
+* Port `5050` 需在 AWS Console Security Group 開放 TCP 給 `0.0.0.0/0`
 
 ---
+
+## 🔍 常用遠端指令
+
+```bash
+# 查看容器狀態
+ssh dify-aws-gyro "docker ps | grep login"
+
+# 查看即時 log
+ssh dify-aws-gyro "docker logs -f docker-login_app-1"
+
+# 進入容器
+ssh dify-aws-gyro "docker exec -it docker-login_app-1 bash"
+
+# 確認 data/ 內容
+ssh dify-aws-gyro "ls -lh ~/Dify/login-app/data/"
+```
+
+---
+
+**建立日期：** 2026-04-23  
+**最後修改：** 2026-04-24  
+**版本：** v1.1.0  
 **整理人：** Antigravity AI & Porter

@@ -50,7 +50,7 @@ class DifyServiceAPIRunner(runner.RequestRunner):
         Returns:
             (处理后的内容, 提取的思维链内容)
         """
-        remove_think = self.pipeline_config['output'].get('misc', {}).get('remove-think', True)
+        remove_think = True  # [方案C] 強制永遠移除 <think> 標籤，不依賴 DB 設定
         thinking_content = ''
         # 从 content 中提取 <think> 标签内容
         if content and '<think>' in content and '</think>' in content:
@@ -63,7 +63,11 @@ class DifyServiceAPIRunner(runner.RequestRunner):
                 # 移除 content 中的 <think> 标签
                 content = re.sub(think_pattern, '', content, flags=re.DOTALL).strip()
 
-        # 3. 根据 remove_think 参数决定是否保留思维链
+        # 3. 移除 Telegram/Discord 等平台不支援的 HTML 標籤（如 <font>, <span>, <div> 等）
+        import re
+        content = re.sub(r'</?(font|span|div|p|br|table|tr|td|th)[^>]*>', '', content)
+
+        # 4. 根据 remove_think 参数决定是否保留思维链
         if remove_think:
             return content, ''
         else:
@@ -364,6 +368,7 @@ class DifyServiceAPIRunner(runner.RequestRunner):
             'langbot_conversation_id': query.variables['conversation_id'],
             'langbot_msg_create_time': query.variables['msg_create_time'],
             'query': plain_text, # Antigravity Fix: Map plain_text to standard Dify workflow 'query'
+            'output_language': '繁體中文', # Default output_language if required by App
         }
 
         inputs.update(query.variables)
@@ -451,7 +456,7 @@ class DifyServiceAPIRunner(runner.RequestRunner):
         think_end = False
         yielded_final = False
 
-        remove_think = self.pipeline_config['output'].get('misc', {}).get('remove-think', True)
+        remove_think = True  # [方案C] 強制永遠移除 <think> 標籤，不依賴 DB 設定
 
         async for chunk in self.dify_client.chat_messages(
             inputs=inputs,
@@ -559,7 +564,7 @@ class DifyServiceAPIRunner(runner.RequestRunner):
         think_start = False
         think_end = False
 
-        remove_think = self.pipeline_config['output'].get('misc', {}).get('remove-think', True)
+        remove_think = True  # [方案C] 強制永遠移除 <think> 標籤，不依賴 DB 設定
 
         async for chunk in self.dify_client.chat_messages(
             inputs=inputs,
@@ -679,6 +684,7 @@ class DifyServiceAPIRunner(runner.RequestRunner):
             'langbot_conversation_id': query.variables['conversation_id'],
             'langbot_msg_create_time': query.variables['msg_create_time'],
             'query': plain_text, # Antigravity Fix: Map plain_text to standard Dify workflow 'query'
+            'output_language': '繁體中文', # Default output_language if required by App
         }
 
         inputs.update(query.variables)
@@ -688,7 +694,7 @@ class DifyServiceAPIRunner(runner.RequestRunner):
         think_end = False
         workflow_contents = ''
 
-        remove_think = self.pipeline_config['output'].get('misc', {}).get('remove-think', True)
+        remove_think = True  # [方案C] 強制永遠移除 <think> 標籤，不依賴 DB 設定
         async for chunk in self.dify_client.workflow_run(
             inputs=inputs,
             user=f'{query.session.launcher_type.value}_{query.session.launcher_id}',

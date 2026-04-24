@@ -9,8 +9,8 @@
 | 項目 | 數值 | 說明 |
 | :--- | :--- | :--- |
 | **機器人名稱 (Bot)** | `@porter_telegram_bot` | 用於推送告警的 Telegram 機器人 |
-| **API Token** | `8552004716:AAGo0eNqPwk6towDeK0z8X8amMVEujdqRN4` | 從 BotFather 申請的通訊金鑰 |
-| **目標 Chat ID** | `8226231440` | 接收私訊的 User ID (PorterYen 專用) |
+| **API Token** | `請放在 telegram/.env` | 從 BotFather 申請的通訊金鑰 |
+| **目標 Chat ID** | `請放在 telegram/.env` | 接收私訊的 User ID |
 
 ---
 
@@ -21,7 +21,7 @@
 *   **HTTP Method**: `POST`
 *   **API URL (含 Token)**: 
     ```text
-    https://api.telegram.org/bot8552004716:AAGo0eNqPwk6towDeK0z8X8amMVEujdqRN4/sendMessage
+    https://api.telegram.org/bot<TOKEN>/sendMessage
     ```
 *   **Headers**:
     ```json
@@ -40,7 +40,7 @@
 **HTML 格式範例：**
 ```json
 {
-  "chat_id": "8226231440",
+  "chat_id": "<CHAT_ID>",
   "text": "⚠️ <b>Ollama 狀態告警</b>\n\n檢查到遠端 Ollama API 無法正常連線，可能導致知識庫無法使用。\n\n⏳ <b>狀態碼</b>: <code>{{#http_test.status_code#}}</code>\n📌 <b>API 位址</b>: <code>http://gyro1.ddns.net:11434</code>\n🔍 <b>偵測時間</b>: <code>{{#time_formatter.formatted_time#}}</code>",
   "parse_mode": "HTML"
 }
@@ -83,6 +83,7 @@ def main(timestamp_ms):
 
 ```powershell
 Invoke-RestMethod -Uri "https://api.telegram.org/bot8552004716:AAGo0eNqPwk6towDeK0z8X8amMVEujdqRN4/sendMessage" -Method Post -ContentType "application/json" -Body '{"chat_id": "8226231440", "text": "✅ *測試成功* \n\nAntigravity AI 已成功連線至您的 Telegram，這也代表 Dify 告警功能設定就緒啦！", "parse_mode": "Markdown"}'
+Invoke-RestMethod -Uri "https://api.telegram.org/bot<TOKEN>/sendMessage" -Method Post -ContentType "application/json" -Body '{"chat_id": "<CHAT_ID>", "text": "Test message", "parse_mode": "HTML"}'
 ```
 
 ---

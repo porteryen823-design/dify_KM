@@ -38,7 +38,7 @@ function Write-Log {
 
 function Invoke-SSH {
     param([string]$Command)
-    ssh $SshHost $Command
+    ssh -o BatchMode=yes -o StrictHostKeyChecking=no $SshHost $Command
     return $LASTEXITCODE
 }
 
@@ -59,7 +59,7 @@ Write-Log "    SSH connection OK."
 Invoke-SSH "mkdir -p $RemoteTmpDir" | Out-Null
 
 # ── 1. PostgreSQL ───────────────────────────────────────────
-Write-Log "[1/5] Backing up PostgreSQL on $SshHost ($RemoteDbContainer)..."
+Write-Log "[1/6] Backing up PostgreSQL on $SshHost ($RemoteDbContainer)..."
 $RemoteSqlFile  = "$RemoteTmpDir/dify_$Date.sql"
 $RemotePgTar    = "$RemoteTmpDir/dify_postgres_$Date.tar.gz"
 $LocalPgZip     = Join-Path $CurrentBackupFolder "dify_postgres_$Date.tar.gz"
@@ -87,7 +87,7 @@ try {
 }
 
 # ── 2. Weaviate ─────────────────────────────────────────────
-Write-Log "[2/5] Backing up Weaviate vector store on $SshHost..."
+Write-Log "[2/6] Backing up Weaviate vector store on $SshHost..."
 $RemoteWvTar = "$RemoteTmpDir/dify_weaviate_$Date.tar.gz"
 $LocalWvFile = Join-Path $CurrentBackupFolder "dify_weaviate_$Date.tar.gz"
 
@@ -108,7 +108,7 @@ try {
 }
 
 # ── 3. Storage ──────────────────────────────────────────────
-Write-Log "[3/5] Backing up Storage files on $SshHost..."
+Write-Log "[3/6] Backing up Storage files on $SshHost..."
 $RemoteStorageDir = "$RemoteBase/volumes/app/storage"
 $RemoteStorageTar = "$RemoteTmpDir/dify_storage_$Date.tar.gz"
 $LocalStorageFile = Join-Path $CurrentBackupFolder "dify_storage_$Date.tar.gz"
@@ -125,7 +125,7 @@ try {
 }
 
 # ── 4. Redis ────────────────────────────────────────────────
-Write-Log "[4/5] Backing up Redis on $SshHost..."
+Write-Log "[4/6] Backing up Redis on $SshHost..."
 $RemoteRdb     = "$RemoteTmpDir/dify_redis_$Date.rdb"
 $LocalRedisFile= Join-Path $CurrentBackupFolder "dify_redis_$Date.rdb"
 
@@ -142,7 +142,7 @@ try {
 }
 
 # ── 5. .env ─────────────────────────────────────────────────
-Write-Log "[5/5] Backing up .env from $SshHost..."
+Write-Log "[5/6] Backing up .env from $SshHost..."
 $RemoteEnvFile = "$RemoteBase/.env"
 $LocalEnvFile  = Join-Path $CurrentBackupFolder "dify_env_$Date.env"
 
@@ -152,6 +152,22 @@ try {
     Write-Log "    .env backup OK: $LocalEnvFile"
 } catch {
     Write-Log "    Warning: .env backup failed: $_"
+}
+
+# ── 6. Login App Database (users.db) ────────────────────────
+Write-Log "[6/6] Backing up Login App Database (users.db) from $SshHost..."
+$RemoteUserDb = "/home/ubuntu/Dify/login-app/data/users.db"
+$LocalUserDb  = Join-Path $CurrentBackupFolder "users_$Date.db"
+
+try {
+    scp "${SshHost}:${RemoteUserDb}" "$LocalUserDb"
+    if (!(Test-Path $LocalUserDb) -or (Get-Item $LocalUserDb).Length -lt 1KB) {
+        throw "users.db download failed or file empty."
+    }
+    Write-Log "    users.db backup OK: $LocalUserDb"
+} catch {
+    # 如果路徑不存在 (例如還沒部署)，我們不報錯導致備份失敗，但留下記錄
+    Write-Log "    Warning: users.db backup failed (might not exist yet): $_"
 }
 
 # ── Cleanup remote temp ────────────────────────────────────

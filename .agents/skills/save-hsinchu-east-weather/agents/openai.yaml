@@ -1,0 +1,7 @@
+interface:
+  display_name: "新竹市東區天氣查詢"
+  short_description: "查詢新竹市東區即時天氣"
+  default_prompt: "Use $save-hsinchu-east-weather to query the current weather in Hsinchu East District and report the condition, temperature, rain chance, and wind."
+
+policy:
+  allow_implicit_invocation: true

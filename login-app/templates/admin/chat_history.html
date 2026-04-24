@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .answer-cell {
+        max-width: 450px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+    /* Markdown 樣式補強 */
+    .answer-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1rem;
+        font-size: 0.8rem;
+    }
+    .answer-content table th, .answer-content table td {
+        border: 1px solid #dee2e6;
+        padding: 4px 8px;
+    }
+    .answer-content table th {
+        background-color: #f8f9fa;
+    }
+    .answer-content p { margin-bottom: 0.5rem; }
+    .answer-content ul, .answer-content ol { padding-left: 1.2rem; margin-bottom: 0.5rem; }
+
+    .query-cell {
+        max-width: 220px;
+        word-break: break-word;
+        font-size: 0.88rem;
+    }
+    .rating-like   { color: #198754; font-weight: 600; }
+    .rating-dislike{ color: #dc3545; font-weight: 600; }
+    .rating-none   { color: #adb5bd; }
+    .reason-cell {
+        max-width: 180px;
+        font-size: 0.82rem;
+        color: #dc3545;
+        word-break: break-word;
+    }
+    .table thead th { font-size: 0.82rem; white-space: nowrap; }
+    .badge-app { font-size: 0.75rem; }
+    .filter-bar .form-label { font-size: 0.85rem; font-weight: 600; }
+    .stats-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(108,117,125,0.1);
+        border-radius: 20px; padding: 4px 14px;
+        font-size: 0.82rem; font-weight: 600;
+    }
+    .collapsible-wrapper {
+        position: relative;
+    }
+    .answer-content {
+        max-height: 100px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        cursor: pointer;
+    }
+    .answer-content.expanded {
+        max-height: none;
+    }
+    .expand-hint {
+        font-size: 0.7rem;
+        color: #0d6efd;
+        text-align: right;
+        display: block;
+        margin-top: 4px;
+    }
+</style>
+<!-- 引入 Markdown 渲染程式庫 -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+    <h3 class="fw-bold mb-0"><i class="bi bi-chat-square-text-fill text-info"></i> 問答歷史查詢</h3>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="stats-chip text-secondary">
+            <i class="bi bi-list-ul"></i> 共 {{ messages|length }} 筆
+        </span>
+        {% if messages %}
+        <span class="stats-chip text-success">
+            <i class="bi bi-hand-thumbs-up-fill"></i> {{ messages | selectattr('rating', 'equalto', 'like') | list | length }}
+        </span>
+        <span class="stats-chip text-danger">
+            <i class="bi bi-hand-thumbs-down-fill"></i> {{ messages | selectattr('rating', 'equalto', 'dislike') | list | length }}
+        </span>
+        {% endif %}
+        <a href="{{ portal_prefix }}/admin/chat_history/export?days={{ days }}&app_slug={{ app_slug }}&rating_filter={{ rating_filter }}&user_filter={{ user_filter }}&keyword={{ keyword }}"
+           class="btn btn-sm btn-outline-secondary rounded-pill">
+            <i class="bi bi-download"></i> 匯出 CSV
+        </a>
+    </div>
+</div>
+
+<!-- 篩選列 -->
+<div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-body py-3">
+        <form method="GET" action="{{ portal_prefix }}/admin/chat_history" class="row g-3 align-items-end filter-bar">
+            <div class="col-md-2 col-sm-4">
+                <label class="form-label"><i class="bi bi-calendar-range"></i> 查詢區間</label>
+                <div class="input-group input-group-sm">
+                    <input type="number" class="form-control" name="days" value="{{ days }}" min="1" max="90">
+                    <span class="input-group-text">天</span>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <label class="form-label"><i class="bi bi-grid"></i> 應用程式</label>
+                <select class="form-select form-select-sm" name="app_slug">
+                    <option value="" {% if not app_slug %}selected{% endif %}>— 全部 —</option>
+                    {% for a in available_apps %}
+                    <option value="{{ a.slug }}" {% if app_slug == a.slug %}selected{% endif %}>
+                        {{ a.appname }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-4">
+                <label class="form-label"><i class="bi bi-funnel"></i> 評分篩選</label>
+                <select class="form-select form-select-sm" name="rating_filter">
+                    <option value="" {% if not rating_filter %}selected{% endif %}>— 全部 —</option>
+                    <option value="like"    {% if rating_filter == 'like'    %}selected{% endif %}>👍 Like</option>
+                    <option value="dislike" {% if rating_filter == 'dislike' %}selected{% endif %}>👎 Dislike</option>
+                    <option value="none"    {% if rating_filter == 'none'    %}selected{% endif %}>未評分</option>
+                </select>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <label class="form-label"><i class="bi bi-person"></i> 使用者</label>
+                <input type="text" class="form-control form-control-sm" name="user_filter" value="{{ user_filter }}" placeholder="ID / Email">
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <label class="form-label"><i class="bi bi-chat-dots"></i> 問題關鍵字</label>
+                <input type="text" class="form-control form-control-sm" name="keyword" value="{{ keyword }}" placeholder="關鍵字">
+            </div>
+            <div class="col-md-2 col-sm-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill flex-fill">
+                    <i class="bi bi-search"></i> 查詢
+                </button>
+                <a href="{{ portal_prefix }}/admin/chat_history" class="btn btn-outline-secondary btn-sm rounded-pill">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 錯誤提示 -->
+{% if error %}
+<div class="alert alert-warning py-2 small">
+    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+</div>
+{% endif %}
+
+<!-- 資料表格 -->
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle mb-0">
+                <thead class="table-secondary">
+                    <tr>
+                        <th class="ps-3">#</th>
+                        <th><i class="bi bi-clock"></i> 時間</th>
+                        <th><i class="bi bi-person-fill"></i> 使用者</th>
+                        <th><i class="bi bi-grid-1x2"></i> App</th>
+                        <th>使用者問題</th>
+                        <th>AI 回答</th>
+                        <th class="text-center"><i class="bi bi-hand-thumbs-up"></i> 評分</th>
+                        <th>不滿意原因</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for msg in messages %}
+                    <tr>
+                        <td class="ps-3 text-muted small">{{ loop.index }}</td>
+                        <td class="text-muted small" style="white-space:nowrap;">{{ msg.created_at }}</td>
+                        <td>
+                            <span class="badge bg-dark-subtle text-dark rounded-pill small">
+                                {{ msg.from_account_id or msg.from_end_user_id or '—' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info-subtle text-info rounded-pill badge-app">
+                                {{ msg.app_name or '—' }}
+                            </span>
+                        </td>
+                        <td class="query-cell">{{ msg.query or '—' }}</td>
+                        <td class="answer-cell">
+                            <div class="collapsible-wrapper">
+                                <div class="answer-content markdown-body" data-raw="{{ msg.answer or '' }}">
+                                    {{ msg.answer or '—' }}
+                                </div>
+                                <span class="expand-hint">點擊展開/收合</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            {% if msg.rating == 'like' %}
+                                <span class="rating-like"><i class="bi bi-hand-thumbs-up-fill"></i> Like</span>
+                            {% elif msg.rating == 'dislike' %}
+                                <span class="rating-dislike"><i class="bi bi-hand-thumbs-down-fill"></i> Dislike</span>
+                            {% else %}
+                                <span class="rating-none">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="reason-cell">
+                            {% if msg.dislike_reason %}
+                                <i class="bi bi-chat-square-quote-fill"></i> {{ msg.dislike_reason }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                            查無符合條件的問答紀錄
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<p class="text-muted small mt-3 ms-1">
+    <i class="bi bi-info-circle"></i>
+    點擊「AI 回答」欄位可展開完整內容。資料來源：Dify API（問答本文）+ 本地 SQLite（評分與原因）。
+</p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 渲染所有 Markdown 內容
+    document.querySelectorAll('.answer-content').forEach(el => {
+        const raw = el.getAttribute('data-raw');
+        if (raw && raw !== '—') {
+            el.innerHTML = marked.parse(raw);
+        }
+
+        // 點擊事件控制展開
+        el.addEventListener('click', function() {
+            this.classList.toggle('expanded');
+        });
+    });
+});
+</script>
+{% endblock %}

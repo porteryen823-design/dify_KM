@@ -1,0 +1,270 @@
+app:
+  description: 透過聊天流架構實作的 AMR 問答機器人，用於測試多節點與知識庫串接。
+  icon: 9db71172-3432-49d4-b402-656dfa9d012d
+  icon_background: '#FFEAD5'
+  mode: advanced-chat
+  name: AMR 聊天流測試
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/ollama:0.1.3@66e156c4f612964c131c49168882e78c2cdfe366879506b97ad855b23c5d6d98
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: llm
+        targetType: answer
+      id: llm-answer
+      selected: false
+      source: llm
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: knowledge-retrieval
+      id: 1773995572113-source-1773998215262-target
+      selected: false
+      source: '1773995572113'
+      sourceHandle: source
+      target: '1773998215262'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1773998215262-source-llm-target
+      selected: false
+      source: '1773998215262'
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: User丟問題
+        selected: false
+        title: 開始
+        type: start
+        variables: []
+      height: 100
+      id: '1773995572113'
+      position:
+        x: 18.544869184264996
+        y: 32.57605619625738
+      positionAbsolute:
+        x: 18.544869184264996
+        y: 32.57605619625738
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1773998215262'
+          - result
+        desc: 生成TSC問答專家
+        memory:
+          query_prompt_template: '這是工程師提出的問題：
+
+
+            {{#sys.query#}}
+
+
+            以下是我從 TSC 操作手冊裡找出來/的參考片段（請根據此段落回答）：{{#1773998215262.result#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            temperature: 0.2
+          mode: chat
+          name: gpt-oss:20b
+          provider: langgenius/ollama/ollama
+        prompt_template:
+        - id: 125c26ac-229f-4a20-8ba0-c22294e1f55f
+          role: system
+          text: '# 角色設定
+
+            你是公司內部的 TSC 系統資深專家「M sir」，負責用最親切、白話的方式，協助工程師解決 TSC 系統的操作與設定問題。
+
+
+            # 核心原則 (最高指導原則)
+
+            1. 嚴格依賴：你必須「完全根據提供的知識庫上下文」來回答問題。
+
+            2. 絕對防幻覺：如果提供的上下文中找不到答案，或你無法從中推論出確切作法，請直接回答：「很抱歉，在此手冊資料中找不到相關資訊，如有需要請直接找我討論喔！」絕對禁止自己編造答案。
+
+
+            # 回答與排版風格
+
+            1. 精簡扼要：請控制在 3 句話之內說明完畢，不要長篇大論。
+
+            2. 容易閱讀：請善用條列式（1. 2. 3. 或 -）以及段落換行，讓重點一目瞭然。
+
+            3. 重點標記：請將專有名詞、按鈕名稱或關鍵步驟用【粗體】標示出來（例如：點擊【存檔】）。
+
+            4. 語氣設定：使用輕鬆、簡單、專業但像前輩在指導後輩的口吻。
+
+
+            # 彈性應對策略 (如果遇到以下情況)：
+
+            - 情況 A：如果使用者的問題太過模糊（如「系統壞了怎麼辦」），請先給出第一步檢查方向，並反問他：「請問你遇到了什麼具體的錯誤代碼，或是哪個畫面出錯了呢？」
+
+            - 情況 B：如果答案牽涉到很多步驟但你被限制在三句話內，請直接告訴他最核心的動作，並附上：「請參考手冊中關於【（填入章節名稱）】的說明。」
+
+
+            # 執行任務
+
+            現在，請根據上述規則與提供的知識庫上下文，回答使用者的問題。{{#context#}}
+
+            '
+        selected: true
+        title: LLM
+        type: llm
+        vision:
+          enabled: false
+      height: 115
+      id: llm
+      position:
+        x: 623.6012890688846
+        y: 53.57605619625738
+      positionAbsolute:
+        x: 623.6012890688846
+        y: 53.57605619625738
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#llm.text#}}'
+        selected: false
+        title: 直接回覆
+        type: answer
+        variables: []
+      height: 102
+      id: answer
+      position:
+        x: 933.0504450886092
+        y: 53.57605619625738
+      positionAbsolute:
+        x: 933.0504450886092
+        y: 53.57605619625738
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        dataset_ids:
+        - e9Tx50l6q83UsfSeGGdwP3ZWHNkNqpxXn5C/6MkmwzbUW+Dx/pjs96FkGRxgT0ap
+        desc: 'tsc知識
+
+          '
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: weighted_score
+          score_threshold: null
+          top_k: 4
+          weights:
+            keyword_setting:
+              keyword_weight: 0
+            vector_setting:
+              embedding_model_name: qwen3-embedding-4b-q4_k_m:latest
+              embedding_provider_name: langgenius/ollama/ollama
+              vector_weight: 1
+            weight_type: customized
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1773995572113'
+        - sys.query
+        retrieval_mode: multiple
+        selected: false
+        title: 知識檢索
+        type: knowledge-retrieval
+      height: 117
+      id: '1773998215262'
+      position:
+        x: 314.5709857842045
+        y: 53.57605619625738
+      positionAbsolute:
+        x: 314.5709857842045
+        y: 53.57605619625738
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -266.52981188408603
+      y: 174.2139602132641
+      zoom: 1.1486983549970349
+  rag_pipeline_variables: []

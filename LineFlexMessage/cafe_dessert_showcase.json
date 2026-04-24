@@ -1,0 +1,364 @@
+{
+  "type": "flex",
+  "altText": "咖啡與甜點推薦 5 選",
+  "contents": {
+    "type": "carousel",
+    "contents": [
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "hero": {
+          "type": "image",
+          "url": "https://ganglionate-enrique-reasonably.ngrok-free.dev/flex-images/cafe_1.jpg",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover"
+        },
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#6F4E37",
+          "contents": [
+            {
+              "type": "text",
+              "text": "01",
+              "color": "#ffffff",
+              "size": "3xl",
+              "weight": "bold",
+              "align": "center"
+            }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "☕ 深焙義式濃縮咖啡",
+              "weight": "bold",
+              "size": "md"
+            },
+            {
+              "type": "text",
+              "text": "濃郁香氣・絲滑奶泡",
+              "size": "xs",
+              "color": "#aaaaaa",
+              "wrap": true
+            },
+            {
+              "type": "text",
+              "text": "NT$120 / 杯",
+              "size": "lg",
+              "weight": "bold",
+              "color": "#6F4E37",
+              "margin": "sm"
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "color": "#6F4E37",
+              "height": "sm",
+              "action": {
+                "type": "message",
+                "label": "☕ 點一杯",
+                "text": "我要點：深焙義式濃縮咖啡"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "hero": {
+          "type": "image",
+          "url": "https://ganglionate-enrique-reasonably.ngrok-free.dev/flex-images/cafe_2.jpg",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover"
+        },
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#A0826D",
+          "contents": [
+            {
+              "type": "text",
+              "text": "02",
+              "color": "#ffffff",
+              "size": "3xl",
+              "weight": "bold",
+              "align": "center"
+            }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "🥐 牛油可頌甜點",
+              "weight": "bold",
+              "size": "md"
+            },
+            {
+              "type": "text",
+              "text": "法式工藝・層層酥脆",
+              "size": "xs",
+              "color": "#aaaaaa",
+              "wrap": true
+            },
+            {
+              "type": "text",
+              "text": "NT$85 / 個",
+              "size": "lg",
+              "weight": "bold",
+              "color": "#A0826D",
+              "margin": "sm"
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "color": "#A0826D",
+              "height": "sm",
+              "action": {
+                "type": "message",
+                "label": "🥐 點一份",
+                "text": "我要點：牛油可頌甜點"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "hero": {
+          "type": "image",
+          "url": "https://ganglionate-enrique-reasonably.ngrok-free.dev/flex-images/cafe_3.jpg",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover"
+        },
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#E6B89C",
+          "contents": [
+            {
+              "type": "text",
+              "text": "03",
+              "color": "#ffffff",
+              "size": "3xl",
+              "weight": "bold",
+              "align": "center"
+            }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "🍰 招牌黑森林蛋糕",
+              "weight": "bold",
+              "size": "md"
+            },
+            {
+              "type": "text",
+              "text": "巧克力濃郁・樱桃點綴",
+              "size": "xs",
+              "color": "#aaaaaa",
+              "wrap": true
+            },
+            {
+              "type": "text",
+              "text": "NT$280 / 個",
+              "size": "lg",
+              "weight": "bold",
+              "color": "#8B6F47",
+              "margin": "sm"
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "color": "#8B6F47",
+              "height": "sm",
+              "action": {
+                "type": "message",
+                "label": "🍰 點一份",
+                "text": "我要點：招牌黑森林蛋糕"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "hero": {
+          "type": "image",
+          "url": "https://ganglionate-enrique-reasonably.ngrok-free.dev/flex-images/cafe_4.jpg",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover"
+        },
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#D4A574",
+          "contents": [
+            {
+              "type": "text",
+              "text": "04",
+              "color": "#ffffff",
+              "size": "3xl",
+              "weight": "bold",
+              "align": "center"
+            }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "🍪 焦糖餅乾四件組",
+              "weight": "bold",
+              "size": "md"
+            },
+            {
+              "type": "text",
+              "text": "手工製作・香甜濃郁",
+              "size": "xs",
+              "color": "#aaaaaa",
+              "wrap": true
+            },
+            {
+              "type": "text",
+              "text": "NT$180 / 盒",
+              "size": "lg",
+              "weight": "bold",
+              "color": "#D4A574",
+              "margin": "sm"
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "color": "#D4A574",
+              "height": "sm",
+              "action": {
+                "type": "message",
+                "label": "🍪 點一份",
+                "text": "我要點：焦糖餅乾四件組"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "hero": {
+          "type": "image",
+          "url": "https://ganglionate-enrique-reasonably.ngrok-free.dev/flex-images/cafe_5.jpg",
+          "size": "full",
+          "aspectRatio": "20:13",
+          "aspectMode": "cover"
+        },
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#B8956A",
+          "contents": [
+            {
+              "type": "text",
+              "text": "05",
+              "color": "#ffffff",
+              "size": "3xl",
+              "weight": "bold",
+              "align": "center"
+            }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "text",
+              "text": "☕ 冷萃珠寶拿鐵",
+              "weight": "bold",
+              "size": "md"
+            },
+            {
+              "type": "text",
+              "text": "冷萃濃精・珍珠柔軟",
+              "size": "xs",
+              "color": "#aaaaaa",
+              "wrap": true
+            },
+            {
+              "type": "text",
+              "text": "NT$140 / 杯",
+              "size": "lg",
+              "weight": "bold",
+              "color": "#B8956A",
+              "margin": "sm"
+            }
+          ]
+        },
+        "footer": {
+          "type": "box",
+          "layout": "vertical",
+          "contents": [
+            {
+              "type": "button",
+              "style": "primary",
+              "color": "#B8956A",
+              "height": "sm",
+              "action": {
+                "type": "message",
+                "label": "☕ 點一杯",
+                "text": "我要點：冷萃珠寶拿鐵"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

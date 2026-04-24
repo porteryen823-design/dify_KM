@@ -8,4 +8,4 @@ services:
       - "8002:8000"
     volumes:
       - ./data:/app/data
-    restart: always
+    restart: "no"

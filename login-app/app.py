@@ -23,6 +23,12 @@ TOKEN_LOG_FILE = os.path.join(DATA_DIR, 'token_log.json')
 # In-memory token store: token -> entry dict
 _token_store: dict = {}
 
+APP_VERSION = os.environ.get('APP_VERSION', 'v1.0.3')
+
+@app.context_processor
+def inject_version():
+    return dict(app_version=APP_VERSION)
+
 # ======================== HELPERS ========================
 
 def get_hash(password: str) -> str:
@@ -92,6 +98,25 @@ def init_users_db():
             UNIQUE(userid, app_id)
         )
     ''')
+    # User-Conversation mapping: persist Dify conversation_id per user per app
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS user_conversations (
+            userid          TEXT NOT NULL,
+            app_slug        TEXT NOT NULL,
+            conversation_id TEXT NOT NULL,
+            updated_at      TEXT DEFAULT '',
+            PRIMARY KEY (userid, app_slug)
+        )
+    ''')
+    # Message feedback content (Dify API does not return content in history)
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS message_feedback (
+            message_id  TEXT PRIMARY KEY,
+            rating      TEXT NOT NULL,
+            content     TEXT DEFAULT '',
+            created_at  TEXT DEFAULT ''
+        )
+    ''')
     # --- 自動升級舊版資料庫欄位 (Migration) ---
     contact_fields = ["phone", "ext", "email", "wechat"]
     for field in contact_fields:
@@ -108,7 +133,7 @@ def init_users_db():
         pass # 欄位已存在
         
     # 確保 TSC 機器人有預設金鑰 (若為空則補上)
-    cur.execute('UPDATE apps SET api_key="app-acUsw5zh3rZRqXrUJxyQ5v4d" WHERE slug="tsc_app" AND (api_key IS NULL OR api_key = "")')
+    cur.execute('UPDATE apps SET api_key="app-Xkr1f443jaCxO1LEKkNguawm" WHERE slug="tsc_app" AND (api_key IS NULL OR api_key = "")')
     conn.commit()
 
     # Migration: Users
@@ -178,7 +203,7 @@ def init_users_db():
             for i, (name, slug, addr, rem, tok) in enumerate(seeds):
                 cur.execute(
                     'INSERT INTO apps (appname, slug, app_address, remark, use_token, api_key, sort_order, created_at) VALUES (?,?,?,?,?,?,?,?)',
-                    (name, slug, addr, rem, tok, 'app-acUsw5zh3rZRqXrUJxyQ5v4d' if slug == 'tsc_app' else '', i*10, now)
+                    (name, slug, addr, rem, tok, 'app-Xkr1f443jaCxO1LEKkNguawm' if slug == 'tsc_app' else '', i*10, now)
                 )
             conn.commit()
             app.logger.info('Seed apps inserted.')
@@ -280,14 +305,20 @@ def db_get_all_apps(only_active=True):
 def db_get_apps_for_user(userid: str):
     """
     實作白名單邏輯：
-    1. 檢查該 user 是否有任何授權設定。
-    2. 若有設定，僅列出有授權且 is_active=1 的 App。
-    3. 若無設定（沙盒模式），列出所有 is_active=1 的 App。
+    1. 針對特定網域 Email，強制繼承 A123 的權限設定。
+    2. 檢查該 user 是否有任何授權設定。
+    3. 若有設定，僅列出有授權且 is_active=1 的 App。
+    4. 若無設定（沙盒模式），列出所有 is_active=1 的 App。
     """
+    effective_userid = userid
+    # 特定網域 Email 使用 A123 的權限範本
+    if userid and "@" in userid and (userid.endswith("@gyro.com.tw") or userid.endswith("@gyrobot.com")):
+        effective_userid = 'A123'
+
     conn = get_db_conn()
     
     # 檢查是否有任何授權記錄
-    count_row = conn.execute('SELECT COUNT(*) FROM user_app_access WHERE userid=?', (userid,)).fetchone()
+    count_row = conn.execute('SELECT COUNT(*) FROM user_app_access WHERE userid=?', (effective_userid,)).fetchone()
     has_rules = count_row[0] > 0
     
     if has_rules:
@@ -297,7 +328,7 @@ def db_get_apps_for_user(userid: str):
             WHERE uaa.userid = ? AND a.is_active = 1
             ORDER BY a.sort_order ASC, a.id ASC
         '''
-        rows = conn.execute(query, (userid,)).fetchall()
+        rows = conn.execute(query, (effective_userid,)).fetchall()
     else:
         rows = conn.execute('SELECT * FROM apps WHERE is_active=1 ORDER BY sort_order ASC, id ASC').fetchall()
         
@@ -328,6 +359,50 @@ def db_get_app(app_id: int):
     row = conn.execute('SELECT * FROM apps WHERE id=?', (app_id,)).fetchone()
     conn.close()
     return dict(row) if row else None
+
+def db_save_message_feedback(message_id: str, rating: str, content: str = ''):
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = get_db_conn()
+    conn.execute(
+        'INSERT INTO message_feedback (message_id, rating, content, created_at) VALUES (?,?,?,?) '
+        'ON CONFLICT(message_id) DO UPDATE SET rating=excluded.rating, content=excluded.content, created_at=excluded.created_at',
+        (message_id, rating, content, now)
+    )
+    conn.commit()
+    conn.close()
+
+def db_get_message_feedbacks(message_ids: list) -> dict:
+    """回傳 {message_id: {rating, content}} mapping"""
+    if not message_ids:
+        return {}
+    conn = get_db_conn()
+    placeholders = ','.join('?' * len(message_ids))
+    rows = conn.execute(
+        f'SELECT message_id, rating, content FROM message_feedback WHERE message_id IN ({placeholders})',
+        message_ids
+    ).fetchall()
+    conn.close()
+    return {r['message_id']: {'rating': r['rating'], 'content': r['content']} for r in rows}
+
+def db_get_conversation_id(userid: str, app_slug: str) -> str:
+    conn = get_db_conn()
+    row = conn.execute(
+        'SELECT conversation_id FROM user_conversations WHERE userid=? AND app_slug=?',
+        (userid, app_slug)
+    ).fetchone()
+    conn.close()
+    return row['conversation_id'] if row else ''
+
+def db_save_conversation_id(userid: str, app_slug: str, conversation_id: str):
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = get_db_conn()
+    conn.execute(
+        'INSERT INTO user_conversations (userid, app_slug, conversation_id, updated_at) VALUES (?,?,?,?) '
+        'ON CONFLICT(userid, app_slug) DO UPDATE SET conversation_id=excluded.conversation_id, updated_at=excluded.updated_at',
+        (userid, app_slug, conversation_id, now)
+    )
+    conn.commit()
+    conn.close()
 
 def db_get_app_by_slug(slug: str):
     conn = get_db_conn()
@@ -385,6 +460,15 @@ def write_json(filepath, data):
     ensure_data_dir()
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+def clean_dify_answer(text: str) -> str:
+    """移除 Dify workflow 洩漏的系統 prompt 前綴（如 'We need to answer again...'）"""
+    import re
+    # 移除開頭至 "Just answer." 之間的系統指令段落
+    text = re.sub(r'^.*?Just answer\.\s*', '', text, flags=re.DOTALL | re.IGNORECASE)
+    # 移除 <think>...</think>（deepseek 等推理模型）
+    text = re.sub(r'<think>.*?</think>\s*', '', text, flags=re.DOTALL)
+    return text.strip()
 
 def generate_access_token(userid: str, username: str, appname: str) -> str:
     """Generate a UUID token and persist to database."""
@@ -452,8 +536,19 @@ def login():
     if request.method == 'POST':
         userid = request.form.get('userid', '').strip()
         pwd = request.form.get('pwd', '')
-        hashed_pwd = get_hash(pwd)
 
+        # 特定網域 Email 登入邏輯：不需要檢查資料庫，也不需填寫密碼，權限同 A123
+        if "@" in userid:
+            if userid.endswith("@gyro.com.tw") or userid.endswith("@gyrobot.com"):
+                session['userid'] = userid
+                session['username'] = userid  # 改為使用完整 Email
+                session['is_admin'] = False
+                return redirect(next_url)
+            else:
+                flash("登入錯誤：目前僅提供 @gyro.com.tw 或 @gyrobot.com 網址", "danger")
+                return render_template('login.html', portal_prefix=PORTAL_PREFIX, next_url=next_url)
+
+        hashed_pwd = get_hash(pwd)
         users = db_get_all_users()
         user = next((u for u in users if u.get('userid') == userid
                      and u.get('pwd') == hashed_pwd
@@ -493,8 +588,10 @@ def chat_send():
         return jsonify({"error": "No JSON payload provided"}), 400
 
     query = data.get('query', '')
-    conversation_id = data.get('conversation_id', '')
     userid = session.get('userid', 'unknown')
+
+    # 優先用前端傳來的 conversation_id；否則從 DB 取回上次的對話
+    conversation_id = data.get('conversation_id', '') or db_get_conversation_id(userid, 'tsc_app')
 
     api_url = "http://api:5001/v1/chat-messages"
     # 優先取 session 中的 API Key，無則動態從 DB 撈 tsc_app 的金鑰
@@ -557,9 +654,11 @@ def chat_send():
                     except json_lib.JSONDecodeError:
                         pass
         
-        # Clean <think> tags from deepseek or other reasoning models if present
-        import re
-        answer_text = re.sub(r'<think>.*?</think>\s*', '', answer_text, flags=re.DOTALL)
+        answer_text = clean_dify_answer(answer_text)
+
+        # 將 Dify 回傳的 conversation_id 持久化到 DB，確保下次登入仍繼續同一對話
+        if conv_id and conv_id != conversation_id:
+            db_save_conversation_id(userid, 'tsc_app', conv_id)
 
         return jsonify({
             "answer": answer_text,
@@ -606,10 +705,63 @@ def chat_feedback():
     try:
         response = requests.post(api_url, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
+        # 本地存一份，因 Dify /v1/messages 不回傳 feedback content
+        db_save_message_feedback(message_id, rating, content)
         return jsonify({"status": "success"})
     except Exception as e:
         app.logger.error(f"Error sending Dify feedback: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route(PORTAL_PREFIX + '/chat/history', methods=['GET'])
+@login_required
+def chat_history():
+    """Proxy to fetch conversation history from Dify"""
+    userid = session.get('userid', 'unknown')
+    conv_id = db_get_conversation_id(userid, 'tsc_app')
+
+    if not conv_id:
+        return jsonify({"messages": [], "conversation_id": ""})
+
+    api_key = session.get('app_api_key')
+    if not api_key:
+        tsc = db_get_app_by_slug('tsc_app')
+        api_key = tsc.get('api_key', '') if tsc else ''
+        if api_key:
+            session['app_api_key'] = api_key
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+    params = {"conversation_id": conv_id, "user": userid, "limit": 50}
+
+    try:
+        response = requests.get(
+            "http://api:5001/v1/messages",
+            headers=headers, params=params, timeout=15
+        )
+        response.raise_for_status()
+        data = response.json()
+        messages = data.get("data", [])
+        for msg in messages:
+            if msg.get("answer"):
+                msg["answer"] = clean_dify_answer(msg["answer"])
+
+        # 補入本地儲存的 feedback content（Dify API 不回傳 content）
+        msg_ids = [m["id"] for m in messages if m.get("id")]
+        local_fb = db_get_message_feedbacks(msg_ids)
+        for msg in messages:
+            mid = msg.get("id")
+            if mid and mid in local_fb:
+                if msg.get("feedback") is None:
+                    msg["feedback"] = {}
+                msg["feedback"]["content"] = local_fb[mid].get("content", "")
+
+        return jsonify({
+            "messages": messages,
+            "conversation_id": conv_id,
+            "has_more": data.get("has_more", False)
+        })
+    except Exception as e:
+        app.logger.error(f"Error fetching Dify history: {e}")
+        return jsonify({"messages": [], "conversation_id": conv_id, "error": str(e)})
 
 @app.route(PORTAL_PREFIX + '/logout')
 def logout():
@@ -980,6 +1132,244 @@ def import_apps():
     except Exception as e:
         flash(f"匯入失敗: {e}", "danger")
     return redirect(PORTAL_PREFIX + '/admin/apps')
+
+# ======================== ADMIN: CHAT HISTORY ========================
+
+def _fetch_app_messages(api_key: str, app_slug: str, days: int, user_ids: list) -> list:
+    """
+    透過 Dify /v1/conversations 再 /v1/messages 分頁抓取指定天數內的問答紀錄。
+    因 Dify API 強隔離 user，必須針對所有已知 user_id 逐一查詢。
+    回傳 list[dict]，每筆含 query, answer, created_at, from_account_id, from_end_user_id, message_id。
+    """
+    import time
+    from datetime import timezone
+
+    cutoff_ts = time.time() - days * 86400
+    results = []
+    headers = {"Authorization": f"Bearer {api_key}"}
+    api_base = "http://api:5001/v1"
+
+    for uid in user_ids:
+        # 步驟 1：取所有 conversations（分頁）
+        conv_ids = []
+        last_id = ""
+        for _ in range(5):  # 每個 user 最多查 5 頁對話
+            params = {"limit": 100, "user": uid}
+            if last_id:
+                params["last_id"] = last_id
+            try:
+                resp = requests.get(f"{api_base}/conversations", headers=headers, params=params, timeout=10)
+                if resp.status_code != 200:
+                    break
+                data = resp.json()
+                convs = data.get("data", [])
+                if not convs:
+                    break
+                for c in convs:
+                    # 如果對話的最後更新時間已經早於 cutoff_ts，可以提早跳過（Dify 返回依更新時間遞減排序）
+                    if c.get("updated_at", 0) < cutoff_ts:
+                        continue
+                    conv_ids.append(c["id"])
+                if not data.get("has_more"):
+                    break
+                last_id = convs[-1]["id"]
+            except Exception:
+                break
+
+        # 步驟 2：對每個 conversation 抓 messages
+        for conv_id in conv_ids:
+            last_msg_id = ""
+            for _ in range(5):  # 每個對話最多查 5 頁訊息
+                params = {"conversation_id": conv_id, "limit": 50, "user": uid}
+                if last_msg_id:
+                    params["first_id"] = last_msg_id
+                try:
+                    resp = requests.get(f"{api_base}/messages", headers=headers, params=params, timeout=10)
+                    if resp.status_code != 200:
+                        break
+                    data = resp.json()
+                    msgs = data.get("data", [])
+                    for m in msgs:
+                        ct = m.get("created_at", 0)
+                        if ct < cutoff_ts:
+                            continue
+                        
+                        # 讀取 Dify 原生的評分 (如果有)
+                        dify_fb = m.get("feedback")
+                        dify_rating = dify_fb.get("rating") if dify_fb else None
+
+                        results.append({
+                            "message_id": m.get("id", ""),
+                            "conversation_id": conv_id,
+                            "query": m.get("query", ""),
+                            "answer": clean_dify_answer(m.get("answer", "")),
+                            "created_at": datetime.fromtimestamp(ct).strftime("%Y-%m-%d %H:%M:%S") if ct else "",
+                            "from_account_id": uid, # Dify API 直接使用我們給的 user
+                            "from_end_user_id": m.get("from_end_user_id", "") or "",
+                            "rating": dify_rating,
+                            "dislike_reason": "",
+                            "app_name": "",
+                            "app_slug": app_slug,
+                        })
+                    if not data.get("has_more"):
+                        break
+                    if msgs:
+                        last_msg_id = msgs[-1]["id"]
+                    else:
+                        break
+                except Exception:
+                    break
+
+    return results
+
+
+def _get_all_known_userids() -> list:
+    """取得系統中所有出現過的 user_id (包含手動建檔與透過 Token/Domain 登入的紀錄)"""
+    conn = get_db_conn()
+    userids = set()
+    try:
+        # 從 users 取得
+        for r in conn.execute('SELECT userid FROM users').fetchall():
+            userids.add(r['userid'])
+        # 從 user_conversations 取得 (可能有未建檔但已對話的使用者)
+        for r in conn.execute('SELECT userid FROM user_conversations').fetchall():
+            userids.add(r['userid'])
+        # 從 token_log 取得
+        for r in conn.execute('SELECT userid FROM token_log').fetchall():
+            userids.add(r['userid'])
+    finally:
+        conn.close()
+    return list(userids)
+
+
+@app.route(PORTAL_PREFIX + '/admin/chat_history')
+@admin_required
+def admin_chat_history():
+    """問答歷史查詢頁面：跨所有已設 api_key 的 App，查詢指定天數內的問答。"""
+    days = int(request.args.get('days', 3))
+    app_slug = request.args.get('app_slug', '').strip()
+    rating_filter = request.args.get('rating_filter', '').strip()
+    user_filter = request.args.get('user_filter', '').strip()
+    keyword = request.args.get('keyword', '').strip()
+
+    available_apps = [a for a in db_get_all_apps(only_active=False) if a.get('api_key')]
+    all_messages = []
+    error = None
+
+    target_apps = [a for a in available_apps if a['slug'] == app_slug] if app_slug else available_apps
+    all_known_users = _get_all_known_userids()
+
+    for target_app in target_apps:
+        try:
+            msgs = _fetch_app_messages(target_app['api_key'], target_app['slug'], days, all_known_users)
+            for m in msgs:
+                m['app_name'] = target_app['appname']
+            all_messages.extend(msgs)
+        except Exception as e:
+            error = f"App [{target_app['appname']}] 查詢失敗: {e}"
+
+    # 依時間降冪排序
+    all_messages.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+
+    # 補入本地 SQLite 的 feedback（rating + dislike reason）
+    msg_ids = [m['message_id'] for m in all_messages if m.get('message_id')]
+    local_fb = db_get_message_feedbacks(msg_ids)
+    for m in all_messages:
+        mid = m.get('message_id', '')
+        if mid and mid in local_fb:
+            # 本地紀錄優先 (因為含有不滿意原因)，若本地無評分才用 Dify 的
+            if local_fb[mid].get('rating'):
+                m['rating'] = local_fb[mid]['rating']
+            m['dislike_reason'] = local_fb[mid].get('content', '')
+
+    # 評分篩選
+    if rating_filter == 'like':
+        all_messages = [m for m in all_messages if m.get('rating') == 'like']
+    elif rating_filter == 'dislike':
+        all_messages = [m for m in all_messages if m.get('rating') == 'dislike']
+    elif rating_filter == 'none':
+        all_messages = [m for m in all_messages if not m.get('rating')]
+
+    # 使用者篩選
+    if user_filter:
+        all_messages = [m for m in all_messages if user_filter.lower() in (m.get('from_account_id') or '').lower()]
+    
+    # 問題關鍵字篩選
+    if keyword:
+        all_messages = [m for m in all_messages if keyword.lower() in (m.get('query') or '').lower()]
+
+    return render_template(
+        'admin/chat_history.html',
+        messages=all_messages,
+        available_apps=available_apps,
+        days=days,
+        app_slug=app_slug,
+        rating_filter=rating_filter,
+        user_filter=user_filter,
+        keyword=keyword,
+        error=error,
+        session=session,
+        portal_prefix=PORTAL_PREFIX
+    )
+
+
+@app.route(PORTAL_PREFIX + '/admin/chat_history/export')
+@admin_required
+def export_chat_history():
+    """將問答歷史匯出為 CSV（UTF-8 BOM，可直接以 Excel 開啟）。"""
+    days = int(request.args.get('days', 3))
+    app_slug = request.args.get('app_slug', '').strip()
+    rating_filter = request.args.get('rating_filter', '').strip()
+    user_filter = request.args.get('user_filter', '').strip()
+    keyword = request.args.get('keyword', '').strip()
+
+    available_apps = [a for a in db_get_all_apps(only_active=False) if a.get('api_key')]
+    target_apps = [a for a in available_apps if a['slug'] == app_slug] if app_slug else available_apps
+    all_messages = []
+    all_known_users = _get_all_known_userids()
+
+    for target_app in target_apps:
+        try:
+            msgs = _fetch_app_messages(target_app['api_key'], target_app['slug'], days, all_known_users)
+            for m in msgs:
+                m['app_name'] = target_app['appname']
+            all_messages.extend(msgs)
+        except Exception:
+            pass
+
+    all_messages.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+
+    msg_ids = [m['message_id'] for m in all_messages if m.get('message_id')]
+    local_fb = db_get_message_feedbacks(msg_ids)
+    for m in all_messages:
+        mid = m.get('message_id', '')
+        if mid and mid in local_fb:
+            if local_fb[mid].get('rating'):
+                m['rating'] = local_fb[mid]['rating']
+            m['dislike_reason'] = local_fb[mid].get('content', '')
+
+    if rating_filter == 'like':
+        all_messages = [m for m in all_messages if m.get('rating') == 'like']
+    elif rating_filter == 'dislike':
+        all_messages = [m for m in all_messages if m.get('rating') == 'dislike']
+    elif rating_filter == 'none':
+        all_messages = [m for m in all_messages if not m.get('rating')]
+
+    if user_filter:
+        all_messages = [m for m in all_messages if user_filter.lower() in (m.get('from_account_id') or '').lower()]
+    if keyword:
+        all_messages = [m for m in all_messages if keyword.lower() in (m.get('query') or '').lower()]
+
+    si = StringIO()
+    fieldnames = ['created_at', 'app_name', 'from_account_id', 'from_end_user_id', 'query', 'answer', 'rating', 'dislike_reason', 'message_id']
+    cw = csv.DictWriter(si, fieldnames=fieldnames, extrasaction='ignore')
+    cw.writeheader()
+    for m in all_messages:
+        cw.writerow({k: m.get(k, '') for k in fieldnames})
+    output = si.getvalue().encode('utf-8-sig')
+    filename = f"chat_history_{days}days.csv"
+    return Response(output, mimetype='text/csv', headers={'Content-Disposition': f'attachment; filename={filename}'})
+
 
 # ======================== EXTERNAL API FOR DIFY ========================
 @app.route('/api/v1/user-query', methods=['GET'])

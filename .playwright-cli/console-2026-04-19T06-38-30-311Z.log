@@ -1,0 +1,10 @@
+[   24143ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://weather.yahoo.com/zh-hant-tw/tw/%E6%96%B0%E7%AB%B9%E5%B8%82/%E6%96%B0%E7%AB%B9%E5%B8%82/?guccounter=1:0
+[   24751ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ :0
+[   24754ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ :0
+[   24758ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ :0
+[   25588ms] [TIMEEND] GA consent: 200.5810546875 ms @ https://s.yimg.com/ss/analytics3.js:0
+[   25602ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://s.yimg.com/eh/prebid-config/weather-hant-desktop.json?v=20562:0
+[   25900ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://s.yimg.com/aaq/f10d509c/d9pmsg6mvxzz6.js:2
+[   26305ms] [WARNING] An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing. @ https://s.yimg.com/aaq/f10d509c/d9pmsg6mvxzz6.js:2
+[   27723ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0
+[   27741ms] [ERROR] Attestation check for Shared Storage on https://www.googleadservices.com failed. @ https://www.googleadservices.com/pagead/managed/js/activeview/current/reach_worklet.html:0

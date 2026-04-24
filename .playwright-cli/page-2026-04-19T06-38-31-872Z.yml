@@ -1,0 +1,63 @@
+- dialog "Your privacy choices" [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading [level=1] [ref=e7]:
+        - banner [ref=e8]:
+          - generic [ref=e11]:
+            - generic [ref=e12]:
+              - heading "guce" [level=1] [ref=e13]
+              - link "yahoo logo" [ref=e14] [cursor=pointer]:
+                - /url: https://tw.yahoo.com/
+                - img [ref=e15]
+                - text: guce
+            - toolbar
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - paragraph [ref=e19]: Your privacy is important to us
+            - paragraph [ref=e20]:
+              - text: Yahoo is part of the
+              - button "Yahoo family of brands" [ref=e21]
+              - text: .
+            - generic [ref=e22]:
+              - text: When you use our sites and apps, we use
+              - button "Cookies" [ref=e23]: cookies
+              - text: "to:"
+            - list [ref=e24]:
+              - listitem [ref=e25]: provide our sites and apps to you
+              - listitem [ref=e26]: authenticate users, apply security measures, and prevent spam and abuse, and
+              - listitem [ref=e27]:
+                - button "Measurement" [ref=e28]: measure
+                - text: your use of our sites and apps
+          - generic [ref=e29]:
+            - generic [ref=e30]: Your privacy choices
+            - generic [ref=e31]:
+              - text: If you click '
+              - strong [ref=e32]: Accept all
+              - text: "', we and"
+              - link "our partners" [ref=e33] [cursor=pointer]:
+                - /url: /v2/partners-list?sessionId=4_cc-session_e1449575-95f0-48cd-9706-46bec09844e4
+              - text: ", including 251 who are part of the IAB Transparency & Consent Framework, will also store and/or access information on a device (in other words, use cookies) and use precise geolocation data and other personal data such as"
+              - button "Technical identifiers" [ref=e34]: technical identifiers
+              - text: and browsing and search data, for analytics, personalized advertising and content, advertising and content measurement, and audience research and services development.
+            - paragraph [ref=e35]:
+              - text: If you do not want us and our partners to use cookies and personal data for these additional purposes, click '
+              - strong [ref=e36]: Reject all
+              - text: "'."
+            - paragraph [ref=e37]:
+              - text: If you would like to customise your choices, click '
+              - strong [ref=e38]: Manage privacy settings
+              - text: "'."
+            - paragraph [ref=e39]:
+              - text: You can withdraw your consent or change your choices at any time by clicking on the 'Privacy & Cookie Settings' or 'Privacy Dashboard' links on our sites and apps. Find out more about how we use your personal data in our
+              - link "Privacy Policy" [ref=e40] [cursor=pointer]:
+                - /url: /redirect?to=https%3A%2F%2Flegal.yahoo.com%2Ftw%2Fzh-hant%2Fyahoo%2Fprivacy%2Findex.html&brandDomain=&brandId=yahoo&tos=eu&step=&sessionId=4_cc-session_e1449575-95f0-48cd-9706-46bec09844e4&userType=NON_REG
+              - text: and
+              - link "Cookie Policy" [ref=e41] [cursor=pointer]:
+                - /url: /redirect?to=https%3A%2F%2Flegal.yahoo.com%2Ftw%2Fzh-hant%2Fyahoo%2Fprivacy%2Ftopics%2Fcookies%2Findex.html&brandDomain=&brandId=yahoo&tos=eu&step=&sessionId=4_cc-session_e1449575-95f0-48cd-9706-46bec09844e4&userType=NON_REG
+              - text: .
+        - generic [ref=e42]:
+          - button "Accept all" [ref=e43] [cursor=pointer]
+          - button "Reject all" [ref=e44] [cursor=pointer]
+          - button "Manage privacy settings" [ref=e45] [cursor=pointer]
+    - button "Go to end" [ref=e47] [cursor=pointer]: Go to end

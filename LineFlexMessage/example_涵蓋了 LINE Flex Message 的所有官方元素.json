@@ -1,0 +1,541 @@
+{
+  "type": "flex",
+  "altText": "Flex Message 完整功能展示",
+  "contents": {
+    "type": "bubble",
+
+    "size": "mega",
+
+    "direction": "ltr",
+
+    "styles": {
+      "header": { "backgroundColor": "#1A1A2E" },
+      "hero":   { "backgroundColor": "#16213E" },
+      "body":   { "backgroundColor": "#FFFFFF", "separator": true, "separatorColor": "#DDDDDD" },
+      "footer": { "backgroundColor": "#F8F9FA", "separator": true, "separatorColor": "#EEEEEE" }
+    },
+
+    "header": {
+      "type": "box",
+      "layout": "horizontal",
+      "paddingAll": "16px",
+      "contents": [
+        {
+          "type": "box",
+          "layout": "vertical",
+          "flex": 1,
+          "contents": [
+            {
+              "type": "text",
+              "text": "FLEX MESSAGE",
+              "color": "#AAAAFF",
+              "size": "xs",
+              "weight": "bold"
+            },
+            {
+              "type": "text",
+              "text": "完整功能展示",
+              "color": "#FFFFFF",
+              "size": "xl",
+              "weight": "bold"
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png",
+          "size": "40px",
+          "gravity": "center"
+        }
+      ]
+    },
+
+    "hero": {
+      "type": "box",
+      "layout": "vertical",
+      "paddingAll": "0px",
+      "contents": [
+        {
+          "type": "image",
+          "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+          "size": "full",
+          "aspectRatio": "20:9",
+          "aspectMode": "cover",
+          "action": {
+            "type": "uri",
+            "label": "點擊圖片",
+            "uri": "https://developers.line.biz"
+          }
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "position": "absolute",
+          "offsetBottom": "0px",
+          "offsetStart": "0px",
+          "offsetEnd": "0px",
+          "paddingAll": "10px",
+          "backgroundColor": "#00000066",
+          "contents": [
+            {
+              "type": "text",
+              "text": "🎯 Hero 區塊：支援圖片、影片與絕對定位疊加文字",
+              "color": "#FFFFFF",
+              "size": "xs",
+              "wrap": true,
+              "flex": 1
+            }
+          ]
+        }
+      ]
+    },
+
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "spacing": "lg",
+      "paddingAll": "16px",
+      "contents": [
+
+        {
+          "type": "text",
+          "text": "① Text 元件：所有樣式",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "xs",
+          "contents": [
+            { "type": "text", "text": "size: xs / 一般文字", "size": "xs", "color": "#666666" },
+            { "type": "text", "text": "size: sm / 一般文字", "size": "sm", "color": "#666666" },
+            { "type": "text", "text": "size: md / 一般文字", "size": "md" },
+            { "type": "text", "text": "size: lg / 粗體", "size": "lg", "weight": "bold" },
+            { "type": "text", "text": "size: xl / 斜體+底線", "size": "xl", "style": "italic", "decoration": "underline" },
+            { "type": "text", "text": "size: xxl / 刪除線", "size": "xxl", "decoration": "line-through", "color": "#FF6B6B" },
+            {
+              "type": "text",
+              "text": "wrap: true — 這段文字很長，啟用 wrap 後會自動換行顯示，不會被截斷。maxLines 可限制最多顯示幾行。",
+              "wrap": true,
+              "maxLines": 2,
+              "size": "sm",
+              "color": "#888888"
+            },
+            {
+              "type": "text",
+              "text": "align: end（靠右）",
+              "align": "end",
+              "size": "sm",
+              "color": "#0000CC"
+            },
+            {
+              "type": "text",
+              "text": "align: center",
+              "align": "center",
+              "size": "sm",
+              "color": "#009900"
+            }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "② Span 元件：同一行多種樣式混排",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "text",
+          "contents": [
+            { "type": "span", "text": "紅色粗體 ", "color": "#FF0000", "weight": "bold" },
+            { "type": "span", "text": "藍色斜體 ", "color": "#0055FF", "style": "italic" },
+            { "type": "span", "text": "底線綠色 ", "color": "#009900", "decoration": "underline" },
+            { "type": "span", "text": "正常收尾", "color": "#333333" }
+          ],
+          "wrap": true
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "③ Icon + Text（baseline box）",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "baseline",
+          "spacing": "xs",
+          "contents": [
+            { "type": "icon", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png", "size": "sm" },
+            { "type": "icon", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png", "size": "sm" },
+            { "type": "icon", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png", "size": "sm" },
+            { "type": "icon", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png", "size": "sm" },
+            { "type": "icon", "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gray_star_28.png", "size": "sm" },
+            { "type": "text", "text": "4.0 分（Icon 只能用在 baseline box）", "size": "xs", "color": "#888888", "margin": "md" }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "④ Image 元件：aspectMode / animated",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "spacing": "md",
+          "contents": [
+            {
+              "type": "box",
+              "layout": "vertical",
+              "flex": 1,
+              "cornerRadius": "8px",
+              "contents": [
+                {
+                  "type": "image",
+                  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+                  "size": "full",
+                  "aspectRatio": "1:1",
+                  "aspectMode": "cover"
+                },
+                { "type": "text", "text": "cover", "size": "xs", "align": "center", "color": "#888888", "margin": "xs" }
+              ]
+            },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "flex": 1,
+              "cornerRadius": "8px",
+              "contents": [
+                {
+                  "type": "image",
+                  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+                  "size": "full",
+                  "aspectRatio": "1:1",
+                  "aspectMode": "fit",
+                  "backgroundColor": "#EEEEEE"
+                },
+                { "type": "text", "text": "fit", "size": "xs", "align": "center", "color": "#888888", "margin": "xs" }
+              ]
+            },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "flex": 1,
+              "cornerRadius": "50px",
+              "contents": [
+                {
+                  "type": "image",
+                  "url": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+                  "size": "full",
+                  "aspectRatio": "1:1",
+                  "aspectMode": "cover",
+                  "action": { "type": "message", "label": "點我", "text": "點擊了圓形圖片" }
+                },
+                { "type": "text", "text": "可點擊", "size": "xs", "align": "center", "color": "#888888", "margin": "xs" }
+              ]
+            }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑤ Video 元件（需指定 altContent 備用圖）",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "text",
+          "text": "影片元件放在 hero block，結構如下（不在此處重複渲染）：",
+          "size": "xs",
+          "color": "#888888",
+          "wrap": true
+        },
+        {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#F0F0F0",
+          "cornerRadius": "6px",
+          "paddingAll": "10px",
+          "contents": [
+            { "type": "text", "text": "\"type\": \"video\"", "size": "xs", "color": "#CC0000", "wrap": true },
+            { "type": "text", "text": "\"url\": \"https://example.com/video.mp4\"", "size": "xs", "color": "#333333", "wrap": true },
+            { "type": "text", "text": "\"previewUrl\": \"https://example.com/thumb.jpg\"", "size": "xs", "color": "#333333", "wrap": true },
+            { "type": "text", "text": "\"altContent\": { type: image ... }  ← 舊版 LINE 備用", "size": "xs", "color": "#555555", "wrap": true }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑥ Box Layout：水平 / 垂直 / baseline + justifyContent",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "justifyContent": "space-between",
+          "backgroundColor": "#EEF2FF",
+          "cornerRadius": "8px",
+          "paddingAll": "10px",
+          "contents": [
+            { "type": "text", "text": "space", "size": "xs", "align": "center", "flex": 0 },
+            { "type": "text", "text": "between", "size": "xs", "align": "center", "flex": 0 },
+            { "type": "text", "text": "分佈", "size": "xs", "align": "center", "flex": 0 }
+          ]
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "justifyContent": "center",
+          "spacing": "md",
+          "backgroundColor": "#FFF3E0",
+          "cornerRadius": "8px",
+          "paddingAll": "10px",
+          "margin": "sm",
+          "contents": [
+            { "type": "text", "text": "center", "size": "xs", "flex": 0 },
+            { "type": "text", "text": "居中", "size": "xs", "flex": 0 },
+            { "type": "text", "text": "排列", "size": "xs", "flex": 0 }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑦ Box：絕對定位 (position: absolute)",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "vertical",
+          "height": "80px",
+          "backgroundColor": "#DDEEFF",
+          "cornerRadius": "8px",
+          "contents": [
+            { "type": "text", "text": "底層文字（relative）", "size": "xs", "color": "#888888", "gravity": "center", "align": "center" },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "position": "absolute",
+              "offsetTop": "8px",
+              "offsetEnd": "8px",
+              "backgroundColor": "#FF6B6B",
+              "cornerRadius": "12px",
+              "paddingStart": "8px",
+              "paddingEnd": "8px",
+              "paddingTop": "2px",
+              "paddingBottom": "2px",
+              "contents": [
+                { "type": "text", "text": "NEW", "color": "#FFFFFF", "size": "xxs", "weight": "bold" }
+              ]
+            }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑧ Button：3 種樣式 + 4 種 Action",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "button",
+          "style": "primary",
+          "color": "#1A1A2E",
+          "action": { "type": "uri", "label": "primary + uri（開網址）", "uri": "https://developers.line.biz" }
+        },
+        {
+          "type": "button",
+          "style": "secondary",
+          "margin": "sm",
+          "action": { "type": "message", "label": "secondary + message（發文字）", "text": "Hello from Flex!" }
+        },
+        {
+          "type": "button",
+          "style": "link",
+          "margin": "sm",
+          "action": { "type": "postback", "label": "link + postback（靜默回傳）", "data": "action=like&id=42", "displayText": "我按了讚！" }
+        },
+        {
+          "type": "button",
+          "style": "primary",
+          "color": "#009900",
+          "margin": "sm",
+          "action": {
+            "type": "datetimepicker",
+            "label": "primary + datetimepicker（選日期）",
+            "data": "action=schedule",
+            "mode": "datetime",
+            "initial": "2026-01-01T10:00",
+            "min": "2026-01-01T00:00",
+            "max": "2026-12-31T23:59"
+          }
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑨ Box Action（整個區塊可點擊）",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "backgroundColor": "#FFF9C4",
+          "cornerRadius": "8px",
+          "paddingAll": "12px",
+          "spacing": "md",
+          "action": { "type": "message", "label": "點擊整個Box", "text": "點了整個黃色區塊！" },
+          "contents": [
+            { "type": "text", "text": "👆", "size": "xl", "flex": 0 },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "flex": 1,
+              "contents": [
+                { "type": "text", "text": "這整個 Box 都可以點！", "weight": "bold", "size": "sm" },
+                { "type": "text", "text": "在 box 上加 action 屬性即可", "size": "xs", "color": "#888888" }
+              ]
+            }
+          ]
+        },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑩ Separator：顏色 / 粗細",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        { "type": "separator", "color": "#FF6B6B", "margin": "sm" },
+        { "type": "separator", "color": "#00B900", "margin": "sm" },
+        { "type": "separator", "color": "#1A1A2E", "margin": "sm" },
+
+        { "type": "separator" },
+
+        {
+          "type": "text",
+          "text": "⑪ paddingAll / cornerRadius / background",
+          "weight": "bold",
+          "size": "md",
+          "color": "#333333"
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "spacing": "sm",
+          "contents": [
+            {
+              "type": "box",
+              "layout": "vertical",
+              "backgroundColor": "#FF6B6B22",
+              "borderColor": "#FF6B6B",
+              "borderWidth": "2px",
+              "cornerRadius": "8px",
+              "paddingAll": "10px",
+              "flex": 1,
+              "contents": [{ "type": "text", "text": "border\n+radius", "size": "xs", "align": "center", "wrap": true }]
+            },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "backgroundColor": "#00B90022",
+              "borderColor": "#00B900",
+              "borderWidth": "2px",
+              "cornerRadius": "50px",
+              "paddingAll": "10px",
+              "flex": 1,
+              "contents": [{ "type": "text", "text": "完全\n圓角", "size": "xs", "align": "center", "wrap": true }]
+            },
+            {
+              "type": "box",
+              "layout": "vertical",
+              "backgroundColor": "#1A1A2E",
+              "cornerRadius": "8px",
+              "paddingAll": "10px",
+              "flex": 1,
+              "contents": [{ "type": "text", "text": "深色\n填充", "size": "xs", "align": "center", "color": "#FFFFFF", "wrap": true }]
+            }
+          ]
+        }
+      ]
+    },
+
+    "footer": {
+      "type": "box",
+      "layout": "vertical",
+      "spacing": "sm",
+      "paddingAll": "14px",
+      "contents": [
+        {
+          "type": "text",
+          "text": "⑫ Footer：flex 屬性控制按鈕比例",
+          "weight": "bold",
+          "size": "sm",
+          "color": "#555555",
+          "margin": "none"
+        },
+        {
+          "type": "box",
+          "layout": "horizontal",
+          "spacing": "sm",
+          "margin": "sm",
+          "contents": [
+            {
+              "type": "button",
+              "style": "secondary",
+              "flex": 1,
+              "height": "sm",
+              "action": { "type": "message", "label": "分享", "text": "分享這則訊息" }
+            },
+            {
+              "type": "button",
+              "style": "primary",
+              "flex": 2,
+              "height": "sm",
+              "color": "#1A1A2E",
+              "action": { "type": "uri", "label": "查看官方文件 →", "uri": "https://developers.line.biz/en/docs/messaging-api/flex-message-elements/" }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "flex: 1 vs flex: 2 → 按鈕寬度比 1:2",
+          "size": "xxs",
+          "color": "#AAAAAA",
+          "align": "center"
+        }
+      ]
+    }
+  }
+}

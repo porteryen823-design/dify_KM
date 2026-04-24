@@ -1,0 +1,274 @@
+{
+  "type": "flex",
+  "altText": "10 張輪播卡片範例",
+  "contents": {
+    "type": "carousel",
+    "contents": [
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#FF6B6B",
+          "contents": [
+            { "type": "text", "text": "01", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🍎 蘋果特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "產地直送・甜脆多汁", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$199 / 箱", "size": "lg", "weight": "bold", "color": "#FF6B6B", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#FF6B6B", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：蘋果" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#FFA94D",
+          "contents": [
+            { "type": "text", "text": "02", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🍊 柳橙特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "高維生素C・天天補充", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$149 / 箱", "size": "lg", "weight": "bold", "color": "#FFA94D", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#FFA94D", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：柳橙" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#FFD43B",
+          "contents": [
+            { "type": "text", "text": "03", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🍋 檸檬特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "清新酸香・手搖必備", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$99 / 袋", "size": "lg", "weight": "bold", "color": "#E8B800", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#E8B800", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：檸檬" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#69DB7C",
+          "contents": [
+            { "type": "text", "text": "04", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🍈 哈密瓜特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "夏日必吃・香甜爆汁", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$259 / 顆", "size": "lg", "weight": "bold", "color": "#2F9E44", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#2F9E44", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：哈密瓜" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#4DABF7",
+          "contents": [
+            { "type": "text", "text": "05", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🫐 藍莓特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "護眼抗老・進口精選", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$349 / 盒", "size": "lg", "weight": "bold", "color": "#1971C2", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#1971C2", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：藍莓" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#CC5DE8",
+          "contents": [
+            { "type": "text", "text": "06", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🍇 葡萄特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "無籽品種・粒粒飽滿", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$299 / 串", "size": "lg", "weight": "bold", "color": "#9C36B5", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#9C36B5", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：葡萄" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#F783AC",
+          "contents": [
+            { "type": "text", "text": "07", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🍓 草莓特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "限量產季・酸甜誘人", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$279 / 盒", "size": "lg", "weight": "bold", "color": "#C2255C", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#C2255C", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：草莓" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#A9E34B",
+          "contents": [
+            { "type": "text", "text": "08", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🥝 奇異果特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "紐西蘭進口・酵素豐富", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$189 / 袋", "size": "lg", "weight": "bold", "color": "#5C940D", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#5C940D", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：奇異果" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#FF922B",
+          "contents": [
+            { "type": "text", "text": "09", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🥭 芒果特賣", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "台南玉井・黃金果肉", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "NT$399 / 箱", "size": "lg", "weight": "bold", "color": "#D9480F", "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "button", "style": "primary", "color": "#D9480F", "height": "sm", "action": { "type": "message", "label": "加入購物車", "text": "加入購物車：芒果" } }]
+        }
+      },
+      {
+        "type": "bubble",
+        "size": "kilo",
+        "header": {
+          "type": "box",
+          "layout": "vertical",
+          "backgroundColor": "#495057",
+          "contents": [
+            { "type": "text", "text": "10", "color": "#ffffff", "size": "3xl", "weight": "bold", "align": "center" }
+          ]
+        },
+        "body": {
+          "type": "box",
+          "layout": "vertical",
+          "spacing": "sm",
+          "contents": [
+            { "type": "text", "text": "🛒 查看全部商品", "weight": "bold", "size": "md" },
+            { "type": "text", "text": "更多水果等你探索！", "size": "xs", "color": "#aaaaaa", "wrap": true },
+            { "type": "text", "text": "點下方回到第一張 👈", "size": "xs", "color": "#aaaaaa", "wrap": true, "margin": "sm" }
+          ]
+        },
+        "footer": {
+          "type": "box", "layout": "vertical", "spacing": "sm",
+          "contents": [
+            {
+              "type": "button", "style": "primary", "color": "#495057", "height": "sm",
+              "action": { "type": "message", "label": "🔁 重新瀏覽", "text": "重新瀏覽水果列表" }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

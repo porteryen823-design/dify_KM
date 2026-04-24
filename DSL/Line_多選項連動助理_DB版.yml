@@ -1,0 +1,391 @@
+app:
+  description: 從 line_flex DB 取 Flex 模板後發送至 LINE（flex_api 驅動）V1.0
+  icon: 🤖
+  icon_background: '#DEFFEE'
+  mode: advanced-chat
+  name: Line 多選項連動助理_DB版
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: flex_api 服務基底 URL（Docker 內部）
+    id: c3d4e5f6-a7b8-9012-cdef-123456789012
+    name: FLEX_API_BASE_URL
+    selector:
+    - env
+    - FLEX_API_BASE_URL
+    value: http://flex_api:8000
+    value_type: string
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 20
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        sourceType: start
+        targetType: http-request
+      id: start-to-line-config
+      source: start
+      sourceHandle: source
+      target: fetch_line_config
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: code
+      id: line-config-to-extract
+      source: fetch_line_config
+      sourceHandle: source
+      target: extract_line_config
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: http-request
+      id: extract-to-fetch
+      source: extract_line_config
+      sourceHandle: source
+      target: fetch_flex
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: code
+      id: fetch-to-assemble
+      source: fetch_flex
+      sourceHandle: source
+      target: assemble
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: code
+        targetType: http-request
+      id: assemble-to-send
+      source: assemble
+      sourceHandle: source
+      target: send_line
+      targetHandle: target
+      type: custom
+    - data:
+        sourceType: http-request
+        targetType: answer
+      id: send-to-answer
+      source: send_line
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: 輸入 flex_id
+        selected: false
+        title: 開始
+        type: start
+        variables:
+        - label: flex_id
+          max_length: 64
+          options: []
+          required: true
+          type: text-input
+          variable: flex_id
+      height: 72
+      id: start
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: 從 flex_api 取得 LINE channel 設定（token 與預設 user_id）
+        headers: ''
+        method: get
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: false
+        timeout:
+          connect: 3
+          max_execution_time: 10
+          read: 5
+          write: 5
+        title: 取得 LINE channel 設定
+        type: http-request
+        url: '{{#env.FLEX_API_BASE_URL#}}/line/channel/default'
+        variables: []
+      height: 103
+      id: fetch_line_config
+      position:
+        x: 360
+        y: 282
+      positionAbsolute:
+        x: 360
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(fetch_body: str, status_code: int) -> dict:\n \
+          \   if status_code != 200:\n        return {\"token\": \"\", \"user_id\": \"\", \"error\": \
+          \"true\", \"error_msg\": f\"failed to fetch line channel config (HTTP {status_code})\"}\n\n    try:\n     \
+          \       parsed = json.loads(fetch_body)\n    except Exception as e:\n      \
+          \      return {\"token\": \"\", \"user_id\": \"\", \"error\": \"true\", \"error_msg\": \
+          f\"invalid line channel config response: {e}\"}\n\n    return {\n        \"token\": parsed.get(\"channel_access_token\", \"\"),\n        \"user_id\": parsed.get(\"default_user_id\", \"\"),\n        \"error\": \"false\",\n        \"error_msg\": \"\",\n    }\n"
+        code_language: python3
+        desc: 解析 LINE channel 設定回應（取出 token 與 user_id）
+        outputs:
+          token:
+            children: null
+            type: string
+          user_id:
+            children: null
+            type: string
+          error:
+            children: null
+            type: string
+          error_msg:
+            children: null
+            type: string
+        selected: false
+        title: 解析 channel 設定
+        type: code
+        variables:
+        - value_selector:
+          - fetch_line_config
+          - body
+          variable: fetch_body
+        - value_selector:
+          - fetch_line_config
+          - status_code
+          variable: status_code
+      height: 113
+      id: extract_line_config
+      position:
+        x: 640
+        y: 282
+      positionAbsolute:
+        x: 640
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data: []
+          type: none
+        desc: 從 flex_api 取得 Flex Message 模板（若無資料會回 404）
+        headers: ''
+        method: get
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: false
+        timeout:
+          connect: 3
+          max_execution_time: 10
+          read: 5
+          write: 5
+        title: 取得 Flex 模板
+        type: http-request
+        url: '{{#env.FLEX_API_BASE_URL#}}/flex/{{#start.flex_id#}}'
+        variables: []
+      height: 103
+      id: fetch_flex
+      position:
+        x: 920
+        y: 282
+      positionAbsolute:
+        x: 920
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "import json\n\ndef main(fetch_body: str, status_code: int, description: str) -> dict:\n \
+          \   if status_code != 200:\n        return {\"messages_json\": \"\", \"error\": \
+          \"true\", \"error_msg\": f\"無資料: flex_id 不存在 (HTTP {status_code})\"}\n\n    try:\n     \
+          \       parsed = json.loads(fetch_body)\n    except Exception as e:\n      \
+          \      return {\"messages_json\": \"\", \"error\": \"true\", \"error_msg\": \
+          f\"無法解析模板: {e}\"}\n\n    # flex_api 現在返回 contents 物件（carousel, bubble 等），不包含外層 type=flex\n    msg = {\n        \"type\": \"flex\",\n        \"altText\": description or \"Flex Message\",\n        \"contents\": parsed[\"contents\"] if isinstance(parsed, dict) and \"contents\" in parsed else parsed,\n    }\n    return {\"messages_json\": json.dumps([msg], ensure_ascii=False), \"error\": \"false\", \"error_msg\": \"\"}\n"
+        code_language: python3
+        desc: 組裝 LINE messages（含錯誤判斷）
+        outputs:
+          messages_json:
+            children: null
+            type: string
+          error:
+            children: null
+            type: string
+          error_msg:
+            children: null
+            type: string
+        selected: false
+        title: 組裝 messages
+        type: code
+        variables:
+        - value_selector:
+          - fetch_flex
+          - body
+          variable: fetch_body
+        - value_selector:
+          - fetch_flex
+          - status_code
+          variable: status_code
+        - value_selector:
+          - fetch_flex
+          - body.description
+          variable: description
+      height: 113
+      id: assemble
+      position:
+        x: 1200
+        y: 282
+      positionAbsolute:
+        x: 1200
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - type: text
+            value: "{\n  \"to\": \"{{#extract_line_config.user_id#}}\",\n  \"messages\": {{#assemble.messages_json#}}\n}"
+          type: raw-text
+        desc: 發送至 LINE Messaging API（僅在 assemble.error=false 時執行）
+        headers: 'Authorization:Bearer {{#extract_line_config.token#}}
+
+          Content-Type:application/json'
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 3
+          retry_enabled: true
+          retry_interval: 100
+        selected: false
+        ssl_verify: true
+        timeout:
+          connect: 3
+          max_execution_time: 15
+          read: 15
+          write: 15
+        title: 發送至 LINE
+        type: http-request
+        url: https://api.line.me/v2/bot/message/push
+        variables: []
+      height: 137
+      id: send_line
+      position:
+        x: 1480
+        y: 282
+      positionAbsolute:
+        x: 1480
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        answer: '{{#extract_line_config.error#=="true" ? extract_line_config.error_msg : (#assemble.error#=="true" ? assemble.error_msg : ("OK! 已發送 flex_id=" + #start.flex_id# + " 至 LINE (status=" + #send_line.status_code# + ")"))}}'
+        desc: ''
+        selected: false
+        title: 回覆
+        type: answer
+        variables: []
+      height: 99
+      id: answer
+      position:
+        x: 1760
+        y: 282
+      positionAbsolute:
+        x: 1760
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    viewport:
+      x: -50
+      y: 0
+      zoom: 0.8
+  rag_pipeline_variables: []
